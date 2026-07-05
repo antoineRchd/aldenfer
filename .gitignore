@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Env / secrets
+.env
+.env.*
+
+# Sauvegardes de partie (données générées à l'exécution)
+sauvegardes/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editeurs
+.vscode/
+.idea/

@@ -1,0 +1,188 @@
+{
+  "commentaire": "Constantes synchronisées avec Equilibrage_Aldenfer.xlsx et simulateur_combat.py — toute modification ici doit être reportée là-bas.",
+  "progression": {
+    "xp_base": 80,
+    "xp_exposant": 1.9,
+    "xp_mission_base": 12,
+    "xp_mission_exposant": 1.4,
+    "or_mission_base": 25,
+    "or_mission_exposant": 1.7,
+    "niveau_max": 200
+  },
+  "energie": {
+    "max_base": 100,
+    "max_par_niveau": 2,
+    "minutes_par_point": 3
+  },
+  "attributs": {
+    "liste": [
+      "force",
+      "agilite",
+      "intelligence",
+      "endurance",
+      "chance",
+      "ruse"
+    ],
+    "cout_coeff_poly": 1.3,
+    "cout_exp_poly": 1.56,
+    "cout_coeff_expo": 5,
+    "cout_base_expo": 1.04,
+    "rabais_classe": 0.2
+  },
+  "combat": {
+    "pv_base": 120,
+    "pv_par_endurance": 20,
+    "degats_alea": 0.1,
+    "precision_base": 90,
+    "precision_par_agi": 0.04,
+    "precision_min": 70,
+    "precision_max": 98,
+    "crit_base": 5,
+    "crit_par_chance": 0.25,
+    "crit_cap": 35,
+    "crit_mult": 1.5,
+    "tours_max": 12,
+    "atk_par_point": 2.6,
+    "def_base": 20,
+    "def_par_endurance": 0.8,
+    "guerrier_bouclier_pct": 0.17,
+    "guerrier_rage_par_coup": 0.05,
+    "rodeur_double_frappe": 0.28,
+    "mage_ignore_def": 0.5,
+    "mage_surcharge_mult": 1.9,
+    "mage_precision_fixe": 87,
+    "ombre_crit_mult": 1.7,
+    "ombre_crit_cap": 42,
+    "ombre_crit_mult_chance": 2.0,
+    "ombre_embuscade": 0.18,
+    "ombre_esquives_auto": 1,
+    "ombre_esquive_passive": 9,
+    "atk_base": 60
+  },
+  "classes": {
+    "Guerrier": {
+      "build_bot": [
+        0.45,
+        0.05,
+        0.0,
+        0.42,
+        0.05,
+        0.03
+      ],
+      "attributs_classe": [
+        "force",
+        "endurance"
+      ]
+    },
+    "Rôdeur": {
+      "build_bot": [
+        0.05,
+        0.48,
+        0.0,
+        0.3,
+        0.14,
+        0.03
+      ],
+      "attributs_classe": [
+        "agilite",
+        "chance"
+      ]
+    },
+    "Mage": {
+      "build_bot": [
+        0.0,
+        0.05,
+        0.52,
+        0.35,
+        0.05,
+        0.03
+      ],
+      "attributs_classe": [
+        "intelligence",
+        "endurance"
+      ]
+    },
+    "Ombre": {
+      "build_bot": [
+        0.05,
+        0.44,
+        0.0,
+        0.3,
+        0.18,
+        0.03
+      ],
+      "attributs_classe": [
+        "agilite",
+        "ruse"
+      ]
+    }
+  },
+  "missions": {
+    "reussite_base": 70,
+    "reussite_min": 35,
+    "reussite_max": 95,
+    "part_budget_attendue": 0.3,
+    "echec_part_xp": 0.5,
+    "echec_chance_blessure": 0.2,
+    "blessure_malus": 0.1
+  },
+  "equipement": {
+    "stat_base": 5,
+    "stat_exposant": 1.15,
+    "emplacements": [
+      "arme",
+      "armure",
+      "casque",
+      "bottes",
+      "amulette",
+      "anneau"
+    ],
+    "raretes": {
+      "Commun": {
+        "mult": 1.0,
+        "prix": 3,
+        "poids_butin": 55
+      },
+      "Inhabituel": {
+        "mult": 1.15,
+        "prix": 7,
+        "poids_butin": 27
+      },
+      "Rare": {
+        "mult": 1.35,
+        "prix": 15,
+        "poids_butin": 14
+      },
+      "Épique": {
+        "mult": 1.6,
+        "prix": 40,
+        "poids_butin": 4
+      }
+    },
+    "effets": {
+      "arme": {
+        "atk": 1.0
+      },
+      "armure": {
+        "def": 0.55
+      },
+      "casque": {
+        "pv": 3.0
+      },
+      "bottes": {
+        "agilite": 0.12
+      },
+      "amulette": {
+        "chance": 0.08
+      },
+      "anneau": {
+        "pv": 1.0,
+        "ruse": 0.3
+      }
+    },
+    "prix_revente": 0.3,
+    "chance_butin_mission": 0.08,
+    "chance_butin_contrat_butin": 0.45,
+    "taille_inventaire": 30
+  }
+}

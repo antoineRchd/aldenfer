@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chroniques d'Aldenfer — Registre de la Guilde des Lames</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noirlac:#14181f; --fer:#232a35; --fer-clair:#39424f;
+  --parchemin:#e6d9b8; --parchemin-ombre:#c9b98e; --encre:#2b2317;
+  --ambrefeu:#e0952f; --ambrefeu-vif:#ffb347; --sang:#9c3b32;
+  --brume:#8b95a3; --reussite:#7ba05b;
+  --r-commun:#9aa3ad; --r-inhabituel:#7ba05b; --r-rare:#5b8fc7; --r-epique:#a06bc7; --r-legendaire:#e0952f;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--noirlac);color:#d8dde5;font-family:'Alegreya',serif;font-size:17px;line-height:1.5;min-height:100vh}
+h1,h2,h3{font-family:'Grenze Gotisch',serif;font-weight:500;letter-spacing:.02em}
+button{font-family:'Alegreya',serif;font-size:16px;cursor:pointer;border:none;border-radius:3px;padding:9px 18px;background:var(--fer-clair);color:#e8ecf2;transition:background .15s}
+button:hover{background:#4a5568}
+button:focus-visible{outline:2px solid var(--ambrefeu);outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.principal{background:var(--ambrefeu);color:var(--encre);font-weight:700}
+button.principal:hover{background:var(--ambrefeu-vif)}
+.cache{display:none!important}
+
+/* ---------- Écran d'entrée ---------- */
+#ecranRegistre{max-width:520px;margin:8vh auto;padding:0 20px;text-align:center}
+#ecranRegistre h1{font-size:52px;color:var(--ambrefeu);line-height:1.05}
+#ecranRegistre .sous{color:var(--brume);font-style:italic;margin:6px 0 34px}
+.registre{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:28px;text-align:left}
+.registre label{display:block;color:var(--brume);font-size:14px;text-transform:uppercase;letter-spacing:.1em;margin:16px 0 6px}
+.registre input{width:100%;padding:10px;font-family:'Alegreya',serif;font-size:18px;background:var(--noirlac);border:1px solid var(--fer-clair);border-radius:3px;color:#e8ecf2}
+.choixClasses{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.choixClasses button{padding:14px 8px;text-align:left;border:1px solid var(--fer-clair);background:var(--noirlac)}
+.choixClasses button.actif{border-color:var(--ambrefeu);background:#2a2418}
+.choixClasses .nomClasse{font-family:'Grenze Gotisch',serif;font-size:22px;color:var(--ambrefeu);display:block}
+.choixClasses small{color:var(--brume)}
+#ecranRegistre .principal{width:100%;margin-top:24px;padding:13px;font-size:19px}
+.erreur{color:#e58e85;margin-top:12px;min-height:24px;font-style:italic}
+
+/* ---------- Jeu ---------- */
+#ecranJeu{max-width:1080px;margin:0 auto;padding:18px 20px 60px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 22px;border-bottom:1px solid var(--fer-clair);padding-bottom:12px;margin-bottom:8px}
+header h1{font-size:34px;color:var(--ambrefeu)}
+header .titreJoueur{color:var(--brume);font-style:italic}
+.stats{display:flex;gap:22px;margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:15px}
+.stats b{color:var(--ambrefeu-vif);font-weight:500}
+.barreEnergie{height:10px;background:var(--fer);border-radius:5px;overflow:hidden;margin:10px 0 4px}
+.barreEnergie div{height:100%;background:linear-gradient(90deg,var(--sang),var(--ambrefeu),var(--ambrefeu-vif));transition:width .4s}
+.sousBarre{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;color:var(--brume);font-size:14px;margin-bottom:14px}
+.sousBarre .mono{font-family:'IBM Plex Mono',monospace}
+.avisBlessure{background:#3a2422;border:1px solid var(--sang);border-radius:4px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+nav{display:flex;gap:4px;margin-bottom:22px;flex-wrap:wrap}
+nav button{background:none;border-radius:4px 4px 0 0;color:var(--brume);font-family:'Grenze Gotisch',serif;font-size:21px;padding:8px 20px}
+nav button.actif{background:var(--fer);color:var(--ambrefeu)}
+
+/* ---------- Tableau des primes ---------- */
+#panneauContrats{background:linear-gradient(180deg,#2a2119,#241d16);border:6px solid #1b1510;border-radius:4px;padding:26px;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
+.grilleContrats{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.avis{position:relative;background:var(--parchemin);color:var(--encre);padding:18px 16px 14px;border-radius:1px;box-shadow:2px 4px 8px rgba(0,0,0,.55);transform:rotate(var(--pente,0deg))}
+.avis::before{content:"";position:absolute;top:-7px;left:50%;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8a8f96,#3d434c);transform:translateX(-50%);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.avis h3{font-size:21px;line-height:1.15;margin-bottom:4px}
+.avis .meta{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6b5b3e;margin-bottom:8px}
+.avis p{font-style:italic;font-size:15.5px;color:#4a3d28;margin-bottom:12px}
+.avis .pied{display:flex;justify-content:space-between;align-items:center}
+.avis .sceau{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--sang);color:#f3e4d2;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1}
+.avis .sceau small{font-size:9px}
+.avis .gains{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5b4a2d}
+.avis button{background:var(--encre);color:var(--parchemin);padding:7px 14px}
+.avis button:hover{background:#443826}
+.avis.verrouille{filter:grayscale(.9) brightness(.75)}
+.avis.verrouille .cadenas{font-size:13px;color:var(--sang);font-weight:700}
+.avis .compteur{position:absolute;top:8px;right:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a7548}
+.avis.prime{background:linear-gradient(160deg,#e9d5a5,#d9bd82);outline:2px solid var(--sang);outline-offset:-6px}
+
+/* ---------- Animation de résolution de quête ---------- */
+#voileMission{position:fixed;inset:0;background:rgba(10,12,16,.82);display:flex;align-items:center;justify-content:center;z-index:100;cursor:pointer}
+.parcheminMission{background:var(--parchemin);color:var(--encre);width:min(430px,92vw);padding:30px 28px;border-radius:2px;box-shadow:0 12px 50px rgba(0,0,0,.7);position:relative;text-align:center;transform:rotate(-.6deg)}
+.parcheminMission h3{font-size:26px;margin-bottom:4px}
+.parcheminMission .lieu{font-style:italic;color:#6b5b3e;margin-bottom:20px}
+.pisteMission{height:8px;background:#cbbb92;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.pisteMission div{height:100%;width:0;background:var(--encre);animation:progresse 1.5s ease-in-out forwards}
+@keyframes progresse{to{width:100%}}
+.etatMission{font-size:14px;color:#6b5b3e;min-height:22px;font-style:italic}
+.sceauResultat{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%) rotate(-14deg) scale(3);opacity:0;font-family:'Grenze Gotisch',serif;font-size:42px;font-weight:700;padding:6px 26px;border:4px solid;border-radius:6px;pointer-events:none}
+.sceauResultat.visible{animation:tamponne .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes tamponne{to{opacity:.92;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
+.sceauResultat.ok{color:#3d6b2f;border-color:#3d6b2f}
+.sceauResultat.rate{color:var(--sang);border-color:var(--sang)}
+.recompensesMission{margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:15px;min-height:24px;color:#3a2f1c}
+.recompensesMission .objetGagne{display:block;margin-top:6px;font-weight:500}
+.fermerIndice{margin-top:14px;font-size:12px;color:#8a7548;font-style:italic}
+
+/* ---------- Scène de combat animée ---------- */
+.scene{background:radial-gradient(ellipse at 50% 120%,#2a2119 0%,#0e1116 70%);border:1px solid var(--fer-clair);border-radius:6px;padding:26px 20px 18px;margin-top:20px;position:relative;overflow:hidden}
+.duellistes{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.duelliste{width:44%;text-align:center;position:relative;transition:transform .18s ease-out}
+.duelliste .pancarte{font-family:'Grenze Gotisch',serif;font-size:19px;line-height:1.1;min-height:44px}
+.duelliste .classeSous{color:var(--brume);font-size:13px;margin-bottom:8px}
+.figurine{width:86px;height:98px;margin:0 auto 10px;background:var(--fer);border:2px solid var(--fer-clair);border-radius:8px 8px 26px 26px;display:flex;align-items:center;justify-content:center;font-family:'Grenze Gotisch',serif;font-size:46px;color:var(--ambrefeu);position:relative;transition:transform .18s ease-out,filter .18s}
+.duelliste.attaque .figurine{transform:translateX(26px) rotate(3deg)}
+.duelliste.droite.attaque .figurine{transform:translateX(-26px) rotate(-3deg)}
+.duelliste.touche .figurine{animation:secoue .3s}
+.duelliste.critTouche .figurine{animation:secoueFort .42s;filter:brightness(1.6) saturate(1.4)}
+.duelliste.esquiveAnim .figurine{transform:translateX(-34px) skewX(-6deg);opacity:.45}
+.duelliste.droite.esquiveAnim .figurine{transform:translateX(34px) skewX(6deg)}
+.duelliste.ko .figurine{transform:rotate(84deg) translateY(24px);opacity:.35;transition:transform .7s,opacity .7s}
+@keyframes secoue{25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+@keyframes secoueFort{20%{transform:translateX(-12px) rotate(-2deg)}45%{transform:translateX(10px) rotate(2deg)}70%{transform:translateX(-6px)}}
+.barrePv{height:14px;background:#0a0d12;border:1px solid var(--fer-clair);border-radius:7px;overflow:hidden}
+.barrePv div{height:100%;width:100%;background:linear-gradient(90deg,#7ba05b,#a4c17f);transition:width .3s ease-out}
+.barrePv.basse div{background:linear-gradient(90deg,var(--sang),#c75b4e)}
+.chiffresPv{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brume);margin-top:4px}
+.chiffreDegats{position:absolute;left:50%;top:6px;transform:translateX(-50%);font-family:'Grenze Gotisch',serif;font-size:30px;color:#e8b0a5;text-shadow:0 2px 4px #000;animation:flotte 1s ease-out forwards;pointer-events:none;z-index:5;white-space:nowrap}
+.chiffreDegats.crit{font-size:44px;color:var(--ambrefeu-vif)}
+.chiffreDegats.info{font-size:16px;font-family:'Alegreya',serif;font-style:italic;color:var(--brume)}
+.chiffreDegats.soin{color:#9fd0ff;font-size:18px}
+@keyframes flotte{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-44px)}}
+.eclairVs{align-self:center;font-family:'Grenze Gotisch',serif;font-size:30px;color:var(--sang);padding-top:38px}
+.bandeauTour{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brume);letter-spacing:.2em;text-transform:uppercase;margin:14px 0 4px;min-height:20px}
+.verdictScene{text-align:center;font-family:'Grenze Gotisch',serif;font-size:30px;min-height:40px;margin-top:4px}
+.verdictScene.gagne{color:var(--ambrefeu-vif)}
+.verdictScene.perd{color:#e58e85}
+.boutonsScene{text-align:center;margin-top:8px}
+.boutonsScene button{font-size:13px;padding:5px 12px;background:#1c222b;color:#8b95a3}
+
+/* ---------- Attributs ---------- */
+.grilleAttributs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.carteAttr{background:var(--fer);border:1px solid var(--fer-clair);border-radius:5px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center}
+.carteAttr .nom{font-family:'Grenze Gotisch',serif;font-size:22px}
+.carteAttr .nom small{display:block;font-family:'Alegreya',serif;font-size:13px;color:var(--brume);font-style:italic}
+.carteAttr .valeur{font-family:'IBM Plex Mono',monospace;font-size:26px;color:var(--ambrefeu-vif);margin-right:14px}
+.carteAttr .bonusEq{font-size:13px;color:var(--r-rare)}
+.carteAttr .rabais{color:var(--reussite);font-size:12px;display:block}
+.noteClasse{color:var(--brume);font-style:italic;margin-bottom:16px}
+
+/* ---------- Équipement ---------- */
+.colonnesEq{display:grid;grid-template-columns:280px 1fr;gap:24px}
+@media(max-width:760px){.colonnesEq{grid-template-columns:1fr}}
+.silhouette{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:18px}
+.silhouette h3{color:var(--ambrefeu);margin-bottom:12px}
+.emplacement{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;border:1px dashed var(--fer-clair);border-radius:4px;margin-bottom:8px;min-height:52px}
+.emplacement .etiquette{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--brume);width:74px;flex-shrink:0}
+.objetNom{font-size:15px;line-height:1.25}
+.objetNom small{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--brume)}
+.puissanceResume{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--brume);line-height:1.9}
+.puissanceResume b{color:var(--ambrefeu-vif);font-weight:500}
+.sacs h3{color:var(--ambrefeu);margin-bottom:10px}
+.ligneObjet{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--fer);border:1px solid var(--fer-clair);border-left-width:4px;border-radius:4px;padding:9px 12px;margin-bottom:8px}
+.ligneObjet .actions{display:flex;gap:6px;flex-shrink:0}
+.ligneObjet .actions button{font-size:13px;padding:5px 10px}
+.videSac{color:var(--brume);font-style:italic;padding:12px 0}
+.forge{margin-top:26px}
+.forge table{width:100%;border-collapse:collapse;font-size:14.5px}
+.forge th{font-family:'Grenze Gotisch',serif;font-weight:500;font-size:16px;color:var(--brume);text-align:left;padding:6px 8px;border-bottom:1px solid var(--fer-clair)}
+.forge td{padding:7px 8px;border-bottom:1px solid #2b323d}
+.forge .mono{font-family:'IBM Plex Mono',monospace;font-size:13.5px}
+.forge button{font-size:13px;padding:4px 10px}
+.rar-Commun{color:var(--r-commun)} .rar-Inhabituel{color:var(--r-inhabituel)} .rar-Rare{color:var(--r-rare)} .rar-Épique{color:var(--r-epique)}
+.bord-Commun{border-left-color:var(--r-commun)!important} .bord-Inhabituel{border-left-color:var(--r-inhabituel)!important} .bord-Rare{border-left-color:var(--r-rare)!important} .bord-Épique{border-left-color:var(--r-epique)!important}
+
+/* ---------- Arène + registre ---------- */
+#panneauArene .intro{color:var(--brume);font-style:italic;margin-bottom:18px;max-width:640px}
+.bilan{font-family:'IBM Plex Mono',monospace;color:var(--brume);margin:14px 0}
+.registreCombat{background:#0e1116;border:1px solid var(--fer-clair);border-left:4px solid var(--ambrefeu);border-radius:4px;padding:16px 20px;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;max-height:300px;overflow-y:auto;white-space:pre-wrap}
+.registreCombat .tour{color:var(--ambrefeu)}
+.registreCombat .verdict{color:var(--ambrefeu-vif);font-size:14.5px}
+.registreCombat .defaiteL{color:#e58e85}
+
+/* ---------- Toasts ---------- */
+#journal{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:360px}
+.toast{background:var(--fer);border-left:4px solid var(--ambrefeu);border-radius:3px;padding:11px 15px;font-size:15px;box-shadow:0 4px 12px rgba(0,0,0,.5);animation:apparait .25s ease-out}
+.toast.mauvais{border-left-color:var(--sang)}
+.toast.bon{border-left-color:var(--reussite)}
+@keyframes apparait{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .toast,.pisteMission div,.sceauResultat.visible,.chiffreDegats{animation:none!important}
+  .sceauResultat.visible{opacity:.92;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}
+  .avis{transform:none!important}
+  .duelliste,.figurine{transition:none!important}
+}
+@media(max-width:640px){.stats{margin-left:0;flex-wrap:wrap;gap:10px}header h1{font-size:26px}.figurine{width:64px;height:76px;font-size:34px}}
+.piedDev{margin-top:36px;color:#4a5260;font-size:13px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.piedDev button{font-size:13px;padding:5px 10px;background:#1c222b;color:#6b7585}
+</style>
+</head>
+<body>
+
+<div id="ecranRegistre">
+  <h1>Chroniques d'Aldenfer</h1>
+  <p class="sous">« Le sang sèche, l'or reste. » — registre de la Guilde des Lames</p>
+  <div class="registre">
+    <label for="champNom">Votre nom</label>
+    <input id="champNom" maxlength="20" placeholder="Comment doit-on vous inscrire ?">
+    <label>Votre voie</label>
+    <div class="choixClasses" id="choixClasses"></div>
+    <button class="principal" onclick="entrer()">Franchir la Porte du Gué</button>
+    <p class="erreur" id="erreurRegistre"></p>
+  </div>
+</div>
+
+<div id="ecranJeu" class="cache">
+  <header>
+    <h1 id="enteteNom"></h1>
+    <span class="titreJoueur" id="enteteTitre"></span>
+    <div class="stats">
+      <span>Niv. <b id="statNiveau"></b></span>
+      <span>Or <b id="statOr"></b></span>
+      <span>Énergie <b id="statEnergie"></b></span>
+    </div>
+  </header>
+  <div class="barreEnergie"><div id="jaugeEnergie"></div></div>
+  <div class="sousBarre">
+    <span id="classeAffichee"></span>
+    <span class="mono" id="resumePuissance"></span>
+    <span class="mono" id="jaugeXp"></span>
+  </div>
+  <div class="avisBlessure cache" id="avisBlessure">
+    <span>Vous êtes blessé : tous vos attributs sont réduits de 10 %. Frère-Portier Aldric peut recoudre ça.</span>
+    <button onclick="soigner()">Se faire soigner</button>
+  </div>
+
+  <nav>
+    <button id="ongletContrats" class="actif" onclick="montrerOnglet('Contrats')">Tableau des primes</button>
+    <button id="ongletAttributs" onclick="montrerOnglet('Attributs')">Attributs</button>
+    <button id="ongletEquipement" onclick="montrerOnglet('Equipement')">Équipement &amp; forge</button>
+    <button id="ongletArene" onclick="montrerOnglet('Arene')">Arène du Rempart</button>
+  </nav>
+
+  <section id="panneauContrats"><div class="grilleContrats" id="grilleContrats"></div></section>
+
+  <section id="panneauAttributs" class="cache">
+    <p class="noteClasse" id="noteClasse"></p>
+    <div class="grilleAttributs" id="grilleAttributs"></div>
+  </section>
+
+  <section id="panneauEquipement" class="cache">
+    <div class="colonnesEq">
+      <div class="silhouette">
+        <h3>Panoplie</h3>
+        <div id="listeEmplacements"></div>
+        <div class="puissanceResume" id="puissanceResume"></div>
+      </div>
+      <div class="sacs">
+        <h3>Sac (<span id="tailleSac">0</span>/30)</h3>
+        <div id="listeInventaire"></div>
+        <div class="forge">
+          <h3>La forge d'Orin — la Braise</h3>
+          <p class="noteClasse">Les pièces sont forgées à votre niveau actuel. Revente des objets du sac : 30 % du prix.</p>
+          <table id="tableForge"></table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panneauArene" class="cache">
+    <p class="intro">Duels d'honneur au Rempart-aux-Corbeaux. L'adversaire est tiré au sort parmi les lames de votre trempe — et il est équipé, comme vous. Coût : 10 points d'énergie.</p>
+    <button class="principal" id="btnDuel" onclick="lancerDuel()">Provoquer en duel</button>
+    <p class="bilan" id="bilanArene"></p>
+    <div id="conteneurScene"></div>
+    <div class="registreCombat cache" id="registreCombat"></div>
+  </section>
+
+  <p class="piedDev">Outils de prototype : <button onclick="devEnergie()">Remplir l'énergie</button> <span>(à retirer en production — en vrai jeu, l'attente fait partie du design)</span></p>
+</div>
+
+<div id="journal"></div>
+
+<script>
+const DESCRIPTIONS_CLASSES = {
+  "Guerrier": "Bouclier de fer, rage montante. Gagne les combats longs.",
+  "Rôdeur": "Frappe le premier, frappe parfois deux fois.",
+  "Mage": "Ignore la moitié des armures. Fragile.",
+  "Ombre": "Coups énormes ou rien. Esquive quand on ne l’attend pas."
+};
+const DESCRIPTIONS_ATTRS = {
+  force:"Dégâts physiques", agilite:"Initiative, précision, esquive", intelligence:"Dégâts magiques, missions de savoir",
+  endurance:"Points de vie, défense", chance:"Coups critiques", ruse:"Réussite des missions"
+};
+const GLYPHES = { "Guerrier":"G", "Rôdeur":"R", "Mage":"M", "Ombre":"O" };
+const NOMS_EMPLACEMENTS = { arme:"Arme", armure:"Armure", casque:"Casque", bottes:"Bottes", amulette:"Amulette", anneau:"Anneau" };
+const NOMS_EFFETS = { atk:"ATK", def:"DÉF", pv:"PV", agilite:"AGI", chance:"CHA", ruse:"RUSE" };
+let perso = null, classeChoisie = null, contratsParId = {};
+const mouvementReduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+async function api(chemin, corps) {
+  const r = await fetch(chemin, corps ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corps)} : undefined);
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.erreur || 'Erreur serveur');
+  return d;
+}
+function toast(msg, genre='') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + genre; t.textContent = msg;
+  document.getElementById('journal').appendChild(t);
+  setTimeout(() => t.remove(), 5200);
+}
+const fmt = n => Math.round(n).toLocaleString('fr-FR');
+const dodo = ms => new Promise(r => setTimeout(r, mouvementReduit ? 0 : ms));
+function descObjet(o) {
+  const effets = { arme:{atk:1}, armure:{def:.55}, casque:{pv:3}, bottes:{agilite:.12}, amulette:{chance:.08}, anneau:{pv:1,ruse:.3} }[o.emplacement];
+  return Object.entries(effets).map(([e,c]) => '+' + fmt(o.stat*c) + ' ' + NOMS_EFFETS[e]).join(' · ');
+}
+
+/* ---------- Entrée ---------- */
+(function initRegistre(){
+  const conteneur = document.getElementById('choixClasses');
+  for (const [nom, desc] of Object.entries(DESCRIPTIONS_CLASSES)) {
+    const b = document.createElement('button');
+    b.innerHTML = '<span class="nomClasse">' + nom + '</span><small>' + desc + '</small>';
+    b.onclick = () => { classeChoisie = nom;
+      conteneur.querySelectorAll('button').forEach(x => x.classList.remove('actif')); b.classList.add('actif'); };
+    conteneur.appendChild(b);
+  }
+})();
+async function entrer() {
+  const nom = document.getElementById('champNom').value.trim();
+  const err = document.getElementById('erreurRegistre');
+  err.textContent = '';
+  if (!nom) { err.textContent = 'Le registre exige un nom.'; return; }
+  try {
+    try { perso = await api('/api/personnage/' + encodeURIComponent(nom)); toast('Bon retour à Aldenfer, ' + nom + '.'); }
+    catch {
+      if (!classeChoisie) { err.textContent = 'Choisissez une voie pour vous inscrire.'; return; }
+      perso = await api('/api/personnage', { nom, classe: classeChoisie });
+      toast('Inscrit au registre. 50 pièces d’or et une lame héritée — les dernières gratuités de votre vie.', 'bon');
+    }
+    document.getElementById('ecranRegistre').classList.add('cache');
+    document.getElementById('ecranJeu').classList.remove('cache');
+    rafraichirEntete(); montrerOnglet('Contrats');
+    setInterval(async () => { if (perso) { perso = await api('/api/personnage/' + encodeURIComponent(perso.nom)); rafraichirEntete(); } }, 20000);
+  } catch(e) { err.textContent = e.message; }
+}
+
+/* ---------- Affichage général ---------- */
+function rafraichirEntete() {
+  document.getElementById('enteteNom').textContent = perso.nom;
+  document.getElementById('enteteTitre').textContent = perso.titre ? '« ' + perso.titre + ' »' : '';
+  document.getElementById('statNiveau').textContent = perso.niveau;
+  document.getElementById('statOr').textContent = fmt(perso.or);
+  document.getElementById('statEnergie').textContent = perso.energie + '/' + perso.energieMax;
+  document.getElementById('jaugeEnergie').style.width = (100 * perso.energie / perso.energieMax) + '%';
+  document.getElementById('classeAffichee').textContent = perso.classe + ' — ' + DESCRIPTIONS_CLASSES[perso.classe];
+  document.getElementById('resumePuissance').textContent = 'ATK ' + fmt(perso.puissance.atk) + ' · DÉF ' + fmt(perso.puissance.def) + ' · PV ' + fmt(perso.puissance.pv);
+  document.getElementById('jaugeXp').textContent = 'XP ' + fmt(perso.xp) + ' / ' + fmt(perso.xpProchainNiveau);
+  document.getElementById('avisBlessure').classList.toggle('cache', !perso.blesse);
+  document.getElementById('bilanArene').textContent = 'Palmarès : ' + perso.victoires + ' victoires, ' + perso.defaites + ' défaites.';
+}
+function montrerOnglet(nom) {
+  for (const o of ['Contrats','Attributs','Equipement','Arene']) {
+    document.getElementById('panneau'+o).classList.toggle('cache', o !== nom);
+    document.getElementById('onglet'+o).classList.toggle('actif', o === nom);
+  }
+  if (nom === 'Contrats') chargerContrats();
+  if (nom === 'Attributs') afficherAttributs();
+  if (nom === 'Equipement') afficherEquipement();
+}
+function annoncerNiveaux(niveaux) {
+  (niveaux || []).forEach(n => toast('Niveau ' + n + ' atteint ! Énergie restaurée, votre réputation grandit.', 'bon'));
+}
+
+/* ---------- Contrats ---------- */
+async function chargerContrats() {
+  const contrats = await api('/api/contrats/' + encodeURIComponent(perso.nom));
+  const g = document.getElementById('grilleContrats');
+  g.innerHTML = '';
+  contratsParId = {};
+  for (const c of contrats) {
+    contratsParId[c.id] = c;
+    const div = document.createElement('div');
+    div.className = 'avis' + (c.verrouille ? ' verrouille' : '') + (c.type === 'boss' ? ' prime' : '');
+    div.style.setProperty('--pente', ((c.id * 37) % 5 - 2) * 0.5 + 'deg');
+    const attrs = c.attributs.length ? 'Épreuve : ' + c.attributs.join(' + ') : 'Sans épreuve';
+    div.innerHTML =
+      (c.accompli ? '<span class="compteur">accompli ×' + c.accompli + '</span>' : '') +
+      '<h3>' + c.nom + '</h3>' +
+      '<div class="meta">Niveau ' + c.niveau + ' · ' + attrs + '</div>' +
+      '<p>' + c.texte + '</p>' +
+      '<div class="pied">' +
+        '<span class="sceau">' + c.energie + '<small>énergie</small></span>' +
+        '<span class="gains">' + (c.type==='boss' ? 'butin épique' : '~' + fmt(c.recompenses.or) + ' or · ' + fmt(c.recompenses.xp) + ' XP') + '</span>' +
+        (c.verrouille ? '<span class="cadenas">réputation insuffisante</span>'
+                      : '<button onclick="faireMission(' + c.id + ')">' + (c.type==='boss' ? 'Donner l’assaut' : 'Accepter') + '</button>') +
+      '</div>';
+    g.appendChild(div);
+  }
+}
+
+/* ---------- Animation de résolution de quête ---------- */
+function ouvrirVoileMission(contratNom) {
+  const voile = document.createElement('div');
+  voile.id = 'voileMission';
+  voile.innerHTML =
+    '<div class="parcheminMission">' +
+      '<h3>' + contratNom + '</h3>' +
+      '<div class="lieu">Les Faubourgs du Gué</div>' +
+      '<div class="pisteMission"><div></div></div>' +
+      '<div class="etatMission">En route…</div>' +
+      '<div class="sceauResultat"></div>' +
+      '<div class="recompensesMission"></div>' +
+      '<div class="fermerIndice cache">— cliquer pour refermer le parchemin —</div>' +
+    '</div>';
+  document.body.appendChild(voile);
+  const etats = ['En route…', 'Sur place…', 'Ça se complique…'];
+  let i = 0;
+  const minuteur = setInterval(() => {
+    i++;
+    if (i < etats.length) voile.querySelector('.etatMission').textContent = etats[i];
+  }, 520);
+  return {
+    conclure(reussite, lignes) {
+      clearInterval(minuteur);
+      voile.querySelector('.etatMission').textContent = '';
+      const sceau = voile.querySelector('.sceauResultat');
+      sceau.textContent = reussite ? 'ACCOMPLI' : 'ÉCHEC';
+      sceau.classList.add(reussite ? 'ok' : 'rate', 'visible');
+      voile.querySelector('.recompensesMission').innerHTML = lignes;
+      voile.querySelector('.fermerIndice').classList.remove('cache');
+      voile.addEventListener('click', () => voile.remove());
+      setTimeout(() => { if (document.body.contains(voile)) voile.remove(); }, 6000);
+    },
+    abandonner() { clearInterval(minuteur); voile.remove(); }
+  };
+}
+
+async function faireMission(id) {
+  const bouton = event && event.target; if (bouton) bouton.disabled = true;
+  try {
+    const promesse = api('/api/mission', { nom: perso.nom, contratId: id });
+    // Les combats de boss basculent directement sur la scène animée
+    const r = await Promise.race([promesse.then(x => ({ ...x, _resolu: true })), dodo(80).then(() => ({ _resolu: false }))]);
+    let reponse = r._resolu ? r : await promesse;
+    if (reponse.boss) {
+      perso = reponse.personnage;
+      montrerOnglet('Arene');
+      const prep = [];
+      if (reponse.preparation.pvReduits) prep.push('PV du boss −' + reponse.preparation.pvReduits + ' %');
+      if (reponse.preparation.atkReduite) prep.push('attaque du boss −10 %');
+      if (reponse.preparation.initiative) prep.push('vous frappez en premier');
+      if (prep.length) toast('Votre préparation paie : ' + prep.join(', ') + '.', 'bon');
+      await jouerScene(reponse.journal, reponse.victoire);
+      if (reponse.victoire) {
+        toast('Brenn est tombé. +' + fmt(reponse.recompenses.or) + ' or, titre « ' + reponse.recompenses.titre + ' ».', 'bon');
+        if (reponse.recompenses.objet) toast('Butin épique : ' + reponse.recompenses.objet.nom + ' !', 'bon');
+        annoncerNiveaux(reponse.recompenses.niveauxGagnes);
+      } else toast('Le moulin tient bon. Revenez plus préparé — ou mieux équipé.', 'mauvais');
+      rafraichirEntete();
+      return;
+    }
+    // Mission normale : animation du parchemin
+    const voile = ouvrirVoileMission(contratsParId[id] ? contratsParId[id].nom : 'Contrat');
+    await dodo(1550);
+    perso = reponse.personnage;
+    let lignes;
+    if (reponse.reussite) {
+      lignes = '+' + fmt(reponse.gains.or) + ' or · +' + fmt(reponse.gains.xp) + ' XP <small>(' + reponse.chance + ' % de chances)</small>';
+      if (reponse.objet && !reponse.objet.plein) lignes += '<span class="objetGagne rar-' + reponse.objet.rarete + '">Butin : ' + reponse.objet.nom + ' (' + reponse.objet.rarete + ')</span>';
+      if (reponse.objet && reponse.objet.plein) lignes += '<span class="objetGagne">Un butin vous échappe : sac plein.</span>';
+    } else {
+      lignes = '+' + fmt(reponse.gains.xp) + ' XP de consolation <small>(' + reponse.chance + ' % de chances)</small>';
+      if (reponse.blessure) lignes += '<span class="objetGagne">Vous rentrez blessé.</span>';
+    }
+    voile.conclure(reponse.reussite, lignes);
+    annoncerNiveaux(reponse.niveauxGagnes);
+    rafraichirEntete();
+    chargerContrats();
+  } catch(e) { toast(e.message, 'mauvais'); document.querySelectorAll('#voileMission').forEach(v => v.remove()); }
+  finally { if (bouton) bouton.disabled = false; }
+}
+
+/* ---------- Attributs ---------- */
+function afficherAttributs() {
+  document.getElementById('noteClasse').textContent =
+    'En tant que ' + perso.classe + ', la Guilde vous fait 20 % de rabais sur vos deux attributs de voie.';
+  const g = document.getElementById('grilleAttributs');
+  g.innerHTML = '';
+  const bonusMap = { agilite: perso.bonusEquipement.agilite, chance: perso.bonusEquipement.chance, ruse: perso.bonusEquipement.ruse };
+  for (const [a, cout] of Object.entries(perso.couts)) {
+    const div = document.createElement('div');
+    div.className = 'carteAttr';
+    const bonus = bonusMap[a] ? ' <span class="bonusEq">+' + fmt(bonusMap[a]) + '</span>' : '';
+    div.innerHTML =
+      '<span class="nom">' + a.charAt(0).toUpperCase() + a.slice(1) + '<small>' + DESCRIPTIONS_ATTRS[a] + '</small></span>' +
+      '<span style="display:flex;align-items:center">' +
+        '<span class="valeur">' + Math.round(perso.attributs[a]) + bonus + '</span>' +
+        '<button onclick="acheterAttribut(\'' + a + '\')" ' + (perso.or < cout ? 'disabled' : '') + '>+1 · ' + fmt(cout) + ' or</button>' +
+      '</span>';
+    g.appendChild(div);
+  }
+}
+async function acheterAttribut(a) {
+  try {
+    const r = await api('/api/attribut', { nom: perso.nom, attribut: a });
+    perso = r.personnage;
+    rafraichirEntete(); afficherAttributs();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function soigner() {
+  try {
+    const r = await api('/api/soigner', { nom: perso.nom });
+    perso = r.personnage;
+    toast('Aldric recoud, bénit, encaisse ' + fmt(r.cout) + ' or.', 'bon');
+    rafraichirEntete();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+
+/* ---------- Équipement & forge ---------- */
+async function afficherEquipement() {
+  const conteneur = document.getElementById('listeEmplacements');
+  conteneur.innerHTML = '';
+  for (const [emp, nomEmp] of Object.entries(NOMS_EMPLACEMENTS)) {
+    const o = perso.equipement[emp];
+    const div = document.createElement('div');
+    div.className = 'emplacement';
+    div.innerHTML = '<span class="etiquette">' + nomEmp + '</span>' +
+      (o ? '<span class="objetNom rar-' + o.rarete + '">' + o.nom + ' <small>niv. ' + o.niveau + ' · ' + descObjet(o) + '</small></span>'
+         : '<span class="objetNom" style="color:var(--brume);font-style:italic">— vide —</span>');
+    conteneur.appendChild(div);
+  }
+  const b = perso.bonusEquipement;
+  document.getElementById('puissanceResume').innerHTML =
+    'Bonus de panoplie :<br>+<b>' + fmt(b.atk) + '</b> ATK · +<b>' + fmt(b.def) + '</b> DÉF · +<b>' + fmt(b.pv) + '</b> PV<br>' +
+    '+<b>' + fmt(b.agilite) + '</b> AGI · +<b>' + fmt(b.chance) + '</b> CHA · +<b>' + fmt(b.ruse) + '</b> RUSE<br><br>' +
+    'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>';
+
+  const sac = document.getElementById('listeInventaire');
+  document.getElementById('tailleSac').textContent = perso.inventaire.length;
+  sac.innerHTML = perso.inventaire.length ? '' : '<div class="videSac">Le sac est vide. La route y pourvoira.</div>';
+  perso.inventaire.forEach((o, i) => {
+    const div = document.createElement('div');
+    div.className = 'ligneObjet bord-' + o.rarete;
+    div.innerHTML =
+      '<span class="objetNom rar-' + o.rarete + '">' + o.nom + ' <small>' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + ' · ' + descObjet(o) + '</small></span>' +
+      '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button><button onclick="vendre(' + i + ')">Vendre</button></span>';
+    sac.appendChild(div);
+  });
+
+  const forge = await api('/api/forge/' + encodeURIComponent(perso.nom));
+  const table = document.getElementById('tableForge');
+  let html = '<tr><th>Pièce</th><th>Commun</th><th>Inhabituel</th><th>Rare</th><th>Épique</th></tr>';
+  for (const emp of Object.keys(NOMS_EMPLACEMENTS)) {
+    html += '<tr><td>' + NOMS_EMPLACEMENTS[emp] + '</td>';
+    for (const rar of ['Commun','Inhabituel','Rare','Épique']) {
+      const l = forge.catalogue.find(x => x.emplacement === emp && x.rarete === rar);
+      html += '<td><button class="rar-' + rar + '" onclick="acheterForge(\'' + emp + '\',\'' + rar + '\')" ' + (perso.or < l.prix ? 'disabled' : '') + '>' + fmt(l.prix) + ' or</button><div class="mono">stat ' + fmt(l.stat) + '</div></td>';
+    }
+    html += '</tr>';
+  }
+  table.innerHTML = html;
+}
+async function acheterForge(emp, rar) {
+  try {
+    const r = await api('/api/forge/acheter', { nom: perso.nom, emplacement: emp, rarete: rar });
+    perso = r.personnage;
+    toast('Orin forge : ' + r.objet.nom + ' (' + r.objet.rarete + ') pour ' + fmt(r.prix) + ' or.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function equiper(i) {
+  try {
+    const r = await api('/api/equiper', { nom: perso.nom, index: i });
+    perso = r.personnage;
+    toast(r.objet.nom + ' équipé' + (r.ancien ? ' — ' + r.ancien.nom + ' retourne au sac.' : '.'), 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function vendre(i) {
+  try {
+    const r = await api('/api/vendre', { nom: perso.nom, index: i });
+    perso = r.personnage;
+    toast(r.objet.nom + ' vendu ' + fmt(r.prix) + ' or.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+
+/* ---------- Scène de combat animée ---------- */
+function construireScene(evInit) {
+  const conteneur = document.getElementById('conteneurScene');
+  conteneur.innerHTML =
+    '<div class="scene">' +
+      '<div class="duellistes">' +
+        coteDuelliste('gauche', evInit.a) +
+        '<div class="eclairVs">⚔</div>' +
+        coteDuelliste('droite', evInit.b) +
+      '</div>' +
+      '<div class="bandeauTour" id="bandeauTour"></div>' +
+      '<div class="verdictScene" id="verdictScene"></div>' +
+      '<div class="boutonsScene"><button id="btnPasserScene">Passer l’animation</button></div>' +
+    '</div>';
+  return conteneur.querySelector('.scene');
+}
+function coteDuelliste(cote, d) {
+  return '<div class="duelliste ' + cote + '" data-nom="' + d.nom.replace(/"/g,'') + '">' +
+    '<div class="pancarte">' + d.nom + '</div>' +
+    '<div class="classeSous">' + d.classe + '</div>' +
+    '<div class="figurine">' + GLYPHES[d.classe] + '</div>' +
+    '<div class="barrePv"><div style="width:100%"></div></div>' +
+    '<div class="chiffresPv">' + fmt(d.pvMax) + ' / ' + fmt(d.pvMax) + ' PV</div>' +
+  '</div>';
+}
+function elDuelliste(nom) {
+  return Array.from(document.querySelectorAll('.duelliste')).find(d => d.dataset.nom === nom.replace(/"/g,''));
+}
+function flotteChiffre(cible, texte, classe='') {
+  const c = document.createElement('div');
+  c.className = 'chiffreDegats ' + classe;
+  c.textContent = texte;
+  cible.appendChild(c);
+  setTimeout(() => c.remove(), 1000);
+}
+function majPv(el, pv, pvMax) {
+  const pct = Math.max(0, 100 * pv / pvMax);
+  const barre = el.querySelector('.barrePv');
+  barre.querySelector('div').style.width = pct + '%';
+  barre.classList.toggle('basse', pct < 32);
+  el.querySelector('.chiffresPv').textContent = fmt(pv) + ' / ' + fmt(pvMax) + ' PV';
+}
+async function jouerScene(journal, victoire) {
+  const evInit = journal.find(e => e.t === 'init');
+  construireScene(evInit);
+  afficherRegistreTexte(journal, victoire);
+  let passer = mouvementReduit;
+  document.getElementById('btnPasserScene').onclick = () => { passer = true; };
+  const bandeau = document.getElementById('bandeauTour');
+  for (const ev of journal) {
+    const pause = passer ? 0 : null;
+    if (ev.t === 'initiative') { bandeau.textContent = ev.texte; await dodo(pause ?? 700); }
+    else if (ev.t === 'tour') { bandeau.textContent = 'Tour ' + ev.n; await dodo(pause ?? 420); }
+    else if (ev.t === 'frappe') {
+      const de = elDuelliste(ev.de), vers = elDuelliste(ev.vers);
+      if (!de || !vers) continue;
+      if (!passer) { de.classList.add('attaque'); await dodo(170); de.classList.remove('attaque'); }
+      vers.classList.add(ev.crit ? 'critTouche' : 'touche');
+      const etiquette = (ev.crit ? 'CRIT ' : '') + '−' + fmt(ev.degats);
+      flotteChiffre(vers, etiquette, ev.crit ? 'crit' : '');
+      if (ev.surcharge) flotteChiffre(de, 'SURCHARGE', 'info');
+      if (ev.embuscade) flotteChiffre(de, 'embuscade', 'info');
+      if (ev.absorbe) flotteChiffre(vers, ev.absorbe + ' absorbés', 'soin');
+      majPv(vers, ev.pvRestants, ev.pvMax);
+      await dodo(pause ?? (ev.crit ? 620 : 460));
+      vers.classList.remove('touche', 'critTouche');
+    }
+    else if (ev.t === 'esquive') {
+      const vers = elDuelliste(ev.vers);
+      if (vers && !passer) { vers.classList.add('esquiveAnim'); flotteChiffre(vers, 'esquive !', 'info'); await dodo(430); vers.classList.remove('esquiveAnim'); }
+    }
+    else if (ev.t === 'rate') {
+      const de = elDuelliste(ev.de);
+      if (de && !passer) { de.classList.add('attaque'); flotteChiffre(elDuelliste(ev.vers) || de, 'raté', 'info'); await dodo(330); de.classList.remove('attaque'); }
+    }
+    else if (ev.t === 'fin') {
+      const perdant = journal.filter(e => e.t === 'init').map(e => [e.a.nom, e.b.nom]).flat().find(n => n !== ev.vainqueur);
+      const elPerdant = perdant && elDuelliste(perdant);
+      if (elPerdant && !ev.timeout) elPerdant.classList.add('ko');
+      bandeau.textContent = '';
+      const verdict = document.getElementById('verdictScene');
+      verdict.textContent = ev.vainqueur === perso.nom ? 'Victoire !' : 'Défaite…';
+      verdict.className = 'verdictScene ' + (ev.vainqueur === perso.nom ? 'gagne' : 'perd');
+      await dodo(pause ?? 500);
+    }
+  }
+}
+function afficherRegistreTexte(journal, victoire) {
+  const reg = document.getElementById('registreCombat');
+  reg.classList.remove('cache');
+  reg.innerHTML = '';
+  journal.forEach((ev, i) => {
+    const ligne = document.createElement('div');
+    if (ev.t === 'tour') ligne.className = 'tour';
+    if (ev.t === 'fin') ligne.className = victoire ? 'verdict' : 'verdict defaiteL';
+    ligne.textContent = ev.texte;
+    reg.appendChild(ligne);
+  });
+  reg.scrollTop = 0;
+}
+
+/* ---------- Arène ---------- */
+async function lancerDuel() {
+  const btn = document.getElementById('btnDuel');
+  btn.disabled = true;
+  try {
+    const r = await api('/api/duel', { nom: perso.nom });
+    perso = r.personnage;
+    await jouerScene(r.journal, r.victoire);
+    if (r.victoire) { toast('Victoire contre ' + r.adversaire + ' : +' + fmt(r.gains.or) + ' or, +' + fmt(r.gains.xp) + ' XP.', 'bon'); annoncerNiveaux(r.gains.niveauxGagnes); }
+    else toast('Défaite contre ' + r.adversaire + '. L’arène a de la mémoire — elle oubliera si vous gagnez la prochaine.', 'mauvais');
+    rafraichirEntete();
+  } catch(e) { toast(e.message, 'mauvais'); }
+  finally { btn.disabled = false; }
+}
+
+async function devEnergie() {
+  const r = await api('/api/dev/energie', { nom: perso.nom });
+  perso = r.personnage; rafraichirEntete();
+  toast('Énergie remplie (outil de prototype).');
+}
+document.getElementById('champNom').addEventListener('keydown', e => { if (e.key === 'Enter') entrer(); });
+</script>
+</body>
+</html>
