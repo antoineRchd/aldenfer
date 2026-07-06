@@ -157,33 +157,39 @@
         "mult": 1.6,
         "prix": 40,
         "poids_butin": 4
+      },
+      "Légendaire": {
+        "mult": 2.0,
+        "prix": 0,
+        "poids_butin": 0
       }
     },
     "effets": {
       "arme": {
-        "atk": 1.0
+        "force": 0.4,
+        "agilite": 0.3,
+        "intelligence": 0.45
       },
       "armure": {
-        "def": 0.55
+        "endurance": 0.15
       },
       "casque": {
-        "pv": 3.0
+        "endurance": 0.1
       },
       "bottes": {
         "agilite": 0.12
       },
       "amulette": {
-        "intelligence": 0.12,
-        "chance": 0.08
+        "chance": 0.12
       },
       "anneau": {
-        "force": 0.12,
         "ruse": 0.3
       }
     },
     "prix_revente": 0.3,
     "chance_butin_mission": 0.08,
     "chance_butin_contrat_butin": 0.45,
-    "taille_inventaire": 30
+    "taille_inventaire": 30,
+    "fusion_part_prix": 0.25
   }
 }

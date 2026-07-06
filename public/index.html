@@ -60,6 +60,10 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 
 /* ---------- Carte de la région ---------- */
 #panneauContrats{background:linear-gradient(180deg,#2a2119,#241d16);border:6px solid #1b1510;border-radius:4px;padding:14px;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
+.ongletsRegion{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.ongletsRegion button{font-family:'Grenze Gotisch',serif;font-size:17px;padding:6px 16px;background:#1b1510;color:#8a7548;border:1px solid #3a2f1c}
+.ongletsRegion button.actif{background:var(--parchemin);color:var(--encre)}
+.ongletsRegion button:disabled{opacity:.45;font-style:italic}
 #carteRegion{display:block;width:100%;height:auto;border-radius:2px}
 #carteRegion .marqueur{cursor:pointer}
 #carteRegion .marqueur circle.fond{transition:r .15s}
@@ -183,19 +187,19 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 @media(max-width:820px){.colonnesEq{grid-template-columns:1fr}}
 .pantin{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:16px}
 .pantin h3{color:var(--ambrefeu);margin-bottom:8px}
-.cadrePantin{position:relative;width:100%;max-width:300px;height:400px;margin:0 auto;background:radial-gradient(ellipse at 50% 40%,#2b3340 0%,#1a2029 75%);border:1px solid var(--fer-clair);border-radius:6px}
-.cadrePantin svg.silhouette{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:88%;opacity:.5}
+/* Équipement porté : bloc de cases encadrées, façon Goodgame Gangster */
+.grillePorte{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 10px;padding:16px 12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;justify-items:center}
+.celluleEq{display:flex;flex-direction:column;align-items:center;gap:5px}
+.celluleEq .etiquetteCase{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--brume);white-space:nowrap}
+.grillePorte .case{border:2px solid #5b4a2d;background:#20242e}
+.grillePorte .case.caseVide .icone{color:#39424f}
 .case{width:64px;height:64px;background:#181d25;border:2px dashed var(--fer-clair);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative}
-.case .etiquetteCase{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--brume);white-space:nowrap;pointer-events:none}
 .case.pleine{border-style:solid;cursor:grab;background:#1d232d}
 .case.pleine:hover{filter:brightness(1.25)}
 .case.cibleDepot{border-color:var(--ambrefeu)!important;border-style:solid;box-shadow:0 0 12px rgba(224,149,47,.5);background:#2a2418}
+.case.cibleFusion{border-color:var(--r-epique)!important;border-style:solid;box-shadow:0 0 12px rgba(160,107,199,.55);background:#241d2e}
 .case svg.icone{width:40px;height:40px;pointer-events:none}
 .case .nivCoin{position:absolute;top:2px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brume);pointer-events:none}
-.slotPantin{position:absolute}
-.slotArme{left:12px;top:150px}.slotArmure{left:50%;top:140px;transform:translateX(-50%)}
-.slotCasque{left:50%;top:14px;transform:translateX(-50%)}.slotAmulette{left:12px;top:44px}
-.slotAnneau{right:12px;top:150px}.slotBottes{left:50%;top:314px;transform:translateX(-50%)}
 .puissanceResume{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--brume);line-height:1.9}
 .puissanceResume b{color:var(--ambrefeu-vif);font-weight:500}
 .sacs h3{color:var(--ambrefeu);margin-bottom:10px}
@@ -291,7 +295,8 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   </nav>
 
   <section id="panneauContrats">
-    <svg id="carteRegion" viewBox="0 0 1000 640" role="img" aria-label="Carte des Faubourgs du Gué"></svg>
+    <div class="ongletsRegion" id="ongletsRegion"></div>
+    <svg id="carteRegion" viewBox="0 0 1000 640" role="img" aria-label="Carte de la région"></svg>
     <div class="legendeCarte">
       <span class="lDispo">contrat disponible</span>
       <span class="lFait">accompli (rejouable)</span>
@@ -308,13 +313,13 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   <section id="panneauEquipement" class="cache">
     <div class="colonnesEq">
       <div class="pantin">
-        <h3>Panoplie</h3>
-        <div class="cadrePantin" id="cadrePantin"></div>
+        <h3>Équipement porté</h3>
+        <div class="grillePorte" id="grillePorte"></div>
         <div class="puissanceResume" id="puissanceResume"></div>
       </div>
       <div class="sacs">
         <h3>Sac (<span id="tailleSac">0</span>/<span id="tailleSacMax">30</span>)</h3>
-        <p class="noteClasse" style="margin-bottom:8px">Glissez une pièce sur la silhouette pour l'équiper, sur l'étal pour la vendre. Double-clic : équiper. Clic sur la panoplie : ranger au sac.</p>
+        <p class="noteClasse" style="margin-bottom:8px">Glissez une pièce sur l'équipement porté pour l'équiper, sur une pièce jumelle pour la <b>fondre</b> (rareté supérieure), sur l'étal pour la vendre. Double-clic : équiper. Clic sur une pièce portée : ranger au sac.</p>
         <div class="grilleSac" id="grilleSac"></div>
         <div class="zoneVente" id="zoneVente">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h16l-1.5 11h-13L4 9z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
@@ -350,10 +355,22 @@ const DESCRIPTIONS_CLASSES = {
   "Mage": "Ignore la moitié des armures. Fragile.",
   "Ombre": "Coups énormes ou rien. Esquive quand on ne l’attend pas."
 };
+// Remplies avec les vrais chiffres du moteur dès que /api/constantes est chargé :
+// chaque attribut dit noir sur blanc ce qu'un point rapporte.
 const DESCRIPTIONS_ATTRS = {
   force:"Dégâts physiques", agilite:"Initiative, précision, esquive", intelligence:"Dégâts magiques, missions de savoir",
   endurance:"Points de vie, défense", chance:"Coups critiques", ruse:"Réussite des missions"
 };
+function ecrireDescriptionsAttrs() {
+  const cb = CONF.combat;
+  const n = x => x.toLocaleString('fr-FR');
+  DESCRIPTIONS_ATTRS.force = '+' + n(cb.atk_par_point) + ' attaque (voie du Guerrier) · missions de force';
+  DESCRIPTIONS_ATTRS.agilite = '+' + n(cb.atk_par_point) + ' attaque (Rôdeur & Ombre) · précision, initiative, esquive';
+  DESCRIPTIONS_ATTRS.intelligence = '+' + n(cb.atk_par_point) + ' attaque (Mage) · missions de savoir';
+  DESCRIPTIONS_ATTRS.endurance = '+' + n(cb.pv_par_endurance) + ' points de vie · +' + n(cb.def_par_endurance) + ' défense';
+  DESCRIPTIONS_ATTRS.chance = '+' + n(cb.crit_par_chance) + ' % de chance de coup critique';
+  DESCRIPTIONS_ATTRS.ruse = 'réussite des missions de ruse · anti-esquive (défense au pillage, à venir)';
+}
 // ---------- Galerie de personnages (SVG stylisés, palette de la DA) ----------
 const CLASSE_FIGURE = { "Guerrier":"guerrier", "Rôdeur":"rodeur", "Mage":"mage", "Ombre":"ombre" };
 const FIGURES = {
@@ -447,6 +464,23 @@ const FIGURES = {
     '<circle cx="40" cy="62" r="6" fill="#e0952f"/><circle cx="60" cy="56" r="4" fill="#e0952f"/><circle cx="68" cy="70" r="3" fill="#e0952f"/>' +
     '<circle cx="40" cy="62" r="2.5" fill="#14181f"/><circle cx="60" cy="56" r="1.6" fill="#14181f"/>' +
     '<path d="M30 104 q2 8 -2 12 q-4 -6 -2 -12z" fill="#2c3a33"/><path d="M56 106 q2 8 -2 12 q-4 -6 -2 -12z" fill="#2c3a33"/><path d="M76 102 q2 8 -2 12 q-4 -6 -2 -12z" fill="#243029"/>',
+  spectre:
+    '<path d="M50 12 q-19 6 -19 28 l0 44 q5 -7 9 0 q4 7 10 0 q5 -7 10 0 q4 7 9 -1 l0 -43 q0 -22 -19 -28z" fill="#8fa3b0" opacity=".8"/>' +
+    '<path d="M50 12 q-15 5 -17 22 l34 0 q-2 -17 -17 -22z" fill="#6e8090"/>' +
+    '<ellipse cx="50" cy="38" rx="11" ry="9" fill="#14181f"/>' +
+    '<circle cx="45" cy="38" r="2.3" fill="#cfe3f0"/><circle cx="55" cy="38" r="2.3" fill="#cfe3f0"/>' +
+    '<path d="M26 60 q-10 4 -9 14 q7 0 10 -8z" fill="#8fa3b0" opacity=".6"/>' +
+    '<path d="M74 60 q10 4 9 14 q-7 0 -10 -8z" fill="#8fa3b0" opacity=".6"/>' +
+    '<path d="M38 92 q-3 10 2 16 M50 94 q-2 10 2 14 M62 92 q3 10 -2 16" stroke="#8fa3b0" stroke-width="2" fill="none" opacity=".5"/>',
+  eveilleur:
+    '<rect x="28" y="88" width="15" height="28" rx="3" fill="#4d4437"/><rect x="57" y="88" width="15" height="28" rx="3" fill="#4d4437"/>' +
+    '<path d="M23 42 h54 l7 50 H16 Z" fill="#5f5344"/>' +
+    '<path d="M38 56 h9 M42 56 v13 M56 62 h9 M60 53 v14 M48 74 h9" stroke="#e0952f" stroke-width="2.6" opacity=".95"/>' +
+    '<path d="M30 48 l8 20 M68 46 l-6 16" stroke="#3a3226" stroke-width="1.6" opacity=".7"/>' +
+    '<rect x="10" y="36" width="19" height="17" rx="3" fill="#6e6152"/><rect x="71" y="36" width="19" height="17" rx="3" fill="#6e6152"/>' +
+    '<rect x="12" y="53" width="13" height="32" rx="5" fill="#5f5344"/><rect x="75" y="53" width="13" height="32" rx="5" fill="#5f5344"/>' +
+    '<rect x="37" y="12" width="26" height="28" rx="5" fill="#6e6152"/>' +
+    '<rect x="41" y="23" width="18" height="7" rx="3.5" fill="#e0952f"/><rect x="39" y="21" width="22" height="11" rx="5" fill="#e0952f" opacity=".25"/>',
   brenn:
     '<path d="M28 14 L46 40 l-5 3 L23 18 Z" fill="#5f6a78"/><path d="M72 14 L54 40 l5 3 L77 18 Z" fill="#5f6a78"/>' +
     '<path d="M21 21 l11 -8 2.5 3.5 -11 8z" fill="#3a2f1c"/><path d="M79 21 l-11 -8 -2.5 3.5 11 8z" fill="#3a2f1c"/>' +
@@ -464,7 +498,8 @@ function figureSVG(figure, classe) {
   return '<svg viewBox="0 0 100 120" role="img">' + dessin + '</svg>';
 }
 const NOMS_EMPLACEMENTS = { arme:"Arme", armure:"Armure", casque:"Casque", bottes:"Bottes", amulette:"Amulette", anneau:"Anneau" };
-const NOMS_EFFETS = { atk:"ATK", def:"DÉF", pv:"PV", force:"FOR", agilite:"AGI", intelligence:"INT", chance:"CHA", ruse:"RUSE" };
+// Les objets ne donnent QUE des attributs, écrits en toutes lettres.
+const NOMS_EFFETS = { force:"Force", agilite:"Agilité", intelligence:"Intelligence", endurance:"Endurance", chance:"Chance", ruse:"Ruse" };
 // Icônes de pièces d'équipement (traits simples, couleur = rareté)
 const ICONES = {
   arme:'<path d="M5 19L16 8m0 0l2.5-2.5M16 8l-1.5-1.5M18 5.5L20 4l-.5 2.5L18 8m-2-2l2 2M5 19l-1.5 1.5M5 19l-2-.5L4 17l2 .5" stroke-linecap="round"/>',
@@ -519,7 +554,7 @@ async function entrer() {
   err.textContent = '';
   if (!nom) { err.textContent = 'Le registre exige un nom.'; return; }
   try {
-    if (!CONF) CONF = await api('/api/constantes');
+    if (!CONF) { CONF = await api('/api/constantes'); ecrireDescriptionsAttrs(); }
     try { perso = await api('/api/personnage/' + encodeURIComponent(nom)); toast('Bon retour à Aldenfer, ' + nom + '.'); }
     catch {
       if (!classeChoisie) { err.textContent = 'Choisissez une voie pour vous inscrire.'; return; }
@@ -560,9 +595,15 @@ function annoncerNiveaux(niveaux) {
   (niveaux || []).forEach(n => toast('Niveau ' + n + ' atteint ! Énergie restaurée, votre réputation grandit.', 'bon'));
 }
 
-/* ---------- Carte de la région ---------- */
-// Décor fixe des Faubourgs du Gué : parchemin, rivière du Bief, bois, cité d'Aldenfer.
-function decorCarte() {
+/* ---------- Cartes des régions ---------- */
+const REGIONS = {
+  1: { nom: 'Les Faubourgs du Gué', sous: 'région 1 — vingt-cinq contrats de la Guilde des Lames', decor: () => decorFaubourgs() },
+  2: { nom: 'Les Hautes Terrasses', sous: 'région 2 — la piste vaskarienne', decor: () => decorTerrasses() }
+};
+let regionActive = 0;
+
+// Cadre, cartouche et rose des vents communs à toutes les cartes.
+function cadreCarte(region) {
   return '' +
   '<defs>' +
     '<radialGradient id="gradParch" cx="50%" cy="42%" r="80%">' +
@@ -572,25 +613,9 @@ function decorCarte() {
   '<rect width="1000" height="640" fill="url(#gradParch)"/>' +
   '<rect x="10" y="10" width="980" height="620" fill="none" stroke="#8a7548" stroke-width="2.5"/>' +
   '<rect x="16" y="16" width="968" height="608" fill="none" stroke="#8a7548" stroke-width="1" opacity=".6"/>' +
-  // La rivière du Bief : descend du moulin (nord) vers le sud-est, alimente le Noirlac.
-  '<path d="M600 30 C 610 90, 540 180, 545 235 C 550 290, 700 320, 830 340 C 930 356, 960 420, 985 470" ' +
-        'fill="none" stroke="#8fa3b0" stroke-width="14" opacity=".55" stroke-linecap="round"/>' +
-  '<ellipse cx="527" cy="242" rx="52" ry="26" fill="#7d94a8" opacity=".55"/>' +
-  '<text x="527" y="222" class="etiquetteLieu" opacity=".9">le Noirlac</text>' +
-  // Bois des Pendus et bois du seigneur : bosquets d'encre.
-  decorBois(255,215,5) + decorBois(330,300,4) + decorBois(415,455,4) + decorBois(490,395,3) +
-  // Collines à l'est.
-  '<path d="M760 480 q28 -26 56 0 M810 508 q28 -26 56 0 M745 522 q24 -22 48 0" fill="none" stroke="#8a7548" stroke-width="2.5" opacity=".7"/>' +
-  // La cité d'Aldenfer, au sud-ouest, d'où part la trame.
-  '<g transform="translate(30,575)" opacity=".9">' +
-    '<path d="M0 40 v-22 h8 v-6 h6 v6 h8 v-8 h7 v8 h8 v-6 h6 v6 h8 v22 z" fill="#6b5b3e"/>' +
-    '<path d="M18 40 v-12 h10 v12" fill="#3a2f1c"/>' +
-  '</g>' +
-  '<text x="55" y="632" class="etiquetteLieu" font-size="14" opacity=".95">Aldenfer — Porte du Gué</text>' +
-  // Cartouche de titre + rose des vents.
   '<g font-family="Grenze Gotisch,serif">' +
-    '<text x="36" y="58" font-size="30" fill="#4a3d28">Les Faubourgs du Gué</text>' +
-    '<text x="36" y="80" font-size="14" fill="#8a7548" font-style="italic" font-family="Alegreya,serif">région 1 — vingt-cinq contrats de la Guilde des Lames</text>' +
+    '<text x="36" y="58" font-size="30" fill="#4a3d28">' + REGIONS[region].nom + '</text>' +
+    '<text x="36" y="80" font-size="14" fill="#8a7548" font-style="italic" font-family="Alegreya,serif">' + REGIONS[region].sous + '</text>' +
   '</g>' +
   '<g transform="translate(940,70)" stroke="#8a7548" fill="#8a7548" opacity=".85">' +
     '<circle r="4" fill="#8a7548"/><path d="M0 -34 L6 -8 L0 -14 L-6 -8 Z"/><path d="M0 34 L6 8 L0 14 L-6 8 Z" opacity=".5"/>' +
@@ -598,11 +623,66 @@ function decorCarte() {
     '<text y="-40" text-anchor="middle" font-size="15" stroke="none" font-family="Grenze Gotisch,serif">N</text>' +
   '</g>';
 }
-function decorBois(x, y, n) {
+
+// Région 1 : parchemin, rivière du Bief, bois, cité d'Aldenfer.
+function decorFaubourgs() {
+  return '' +
+  '<path d="M600 30 C 610 90, 540 180, 545 235 C 550 290, 700 320, 830 340 C 930 356, 960 420, 985 470" ' +
+        'fill="none" stroke="#8fa3b0" stroke-width="14" opacity=".55" stroke-linecap="round"/>' +
+  '<ellipse cx="527" cy="242" rx="52" ry="26" fill="#7d94a8" opacity=".55"/>' +
+  '<text x="527" y="222" class="etiquetteLieu" opacity=".9">le Noirlac</text>' +
+  decorBois(255,215,5,'#5d6b4a','#4a5539') + decorBois(330,300,4,'#5d6b4a','#4a5539') +
+  decorBois(415,455,4,'#5d6b4a','#4a5539') + decorBois(490,395,3,'#5d6b4a','#4a5539') +
+  '<path d="M760 480 q28 -26 56 0 M810 508 q28 -26 56 0 M745 522 q24 -22 48 0" fill="none" stroke="#8a7548" stroke-width="2.5" opacity=".7"/>' +
+  '<g transform="translate(30,575)" opacity=".9">' +
+    '<path d="M0 40 v-22 h8 v-6 h6 v6 h8 v-8 h7 v8 h8 v-6 h6 v6 h8 v22 z" fill="#6b5b3e"/>' +
+    '<path d="M18 40 v-12 h10 v12" fill="#3a2f1c"/>' +
+  '</g>' +
+  '<text x="55" y="632" class="etiquetteLieu" font-size="14" opacity=".95">Aldenfer — Porte du Gué</text>';
+}
+
+// Région 2 : terrasses étagées, arbres de cendre, aqueduc, gouffre, garnison vaskarienne.
+function decorTerrasses() {
+  let s = '';
+  // Lignes de terrasses : l'altitude monte vers le nord.
+  for (const [y, o] of [[470, .5], [400, .55], [330, .6], [250, .65], [170, .7]])
+    s += '<path d="M20 ' + (y + 18) + ' Q 250 ' + (y - 14) + ', 500 ' + y + ' T 980 ' + (y - 16) + '" fill="none" stroke="#8a7548" stroke-width="3" opacity="' + o + '" stroke-dasharray="30 7 12 7"/>';
+  // Arbres de cendre (gris) épars.
+  s += decorBois(180,470,4,'#6e7266','#585c50') + decorBois(600,455,3,'#6e7266','#585c50') + decorBois(430,180,4,'#6e7266','#585c50');
+  // L'aqueduc vaskarien traverse en biais (arches).
+  s += '<g opacity=".8">';
+  for (let i = 0; i < 7; i++) {
+    const ax = 560 + i * 52, ay = 462 - i * 11;
+    s += '<path d="M' + ax + ' ' + (ay - 38) + ' h44 v34 a16 16 0 0 0 -18 -12 a16 16 0 0 0 -16 12 z" fill="#8a7548" opacity=".8"/>';
+  }
+  s += '</g>';
+  // Le gouffre, à l'ouest.
+  s += '<ellipse cx="95" cy="330" rx="46" ry="20" fill="#2b2317" opacity=".8"/>' +
+       '<ellipse cx="95" cy="326" rx="34" ry="13" fill="#14181f" opacity=".85"/>' +
+       '<text x="95" y="298" class="etiquetteLieu" opacity=".9">le Gouffre</text>';
+  // Canal du chant (eau vers la garnison).
+  s += '<path d="M905 260 C 850 200, 740 150, 660 110" fill="none" stroke="#8fa3b0" stroke-width="10" opacity=".5" stroke-linecap="round"/>';
+  // Fanaux sur les crêtes (petites flammes ambrées).
+  for (const [fx, fy] of [[540, 262], [585, 240], [660, 218], [700, 205]])
+    s += '<circle cx="' + fx + '" cy="' + fy + '" r="4" fill="#e0952f" opacity=".85"/><circle cx="' + fx + '" cy="' + fy + '" r="8" fill="#e0952f" opacity=".25"/>';
+  // La garnison vaskarienne, au sommet.
+  s += '<g transform="translate(575,30)" opacity=".95">' +
+    '<path d="M0 60 v-34 h12 v-10 h10 v10 h14 v-16 h12 v16 h14 v-10 h10 v10 h12 v34 z" fill="#5f5344"/>' +
+    '<path d="M34 60 v-18 h16 v18" fill="#2b2317"/>' +
+    '<rect x="16" y="34" width="6" height="9" fill="#e0952f" opacity=".8"/><rect x="62" y="30" width="6" height="9" fill="#e0952f" opacity=".8"/>' +
+  '</g>' +
+  '<text x="618" y="26" class="etiquetteLieu" font-size="13" opacity=".95">la Garnison</text>' +
+  // Nécropole : rangées de niches.
+  '<g opacity=".7">';
+  for (let i = 0; i < 6; i++) s += '<path d="M' + (445 + (i % 3) * 26) + ' ' + (198 + Math.floor(i / 3) * 20) + ' v-10 a7 7 0 0 1 14 0 v10 z" fill="none" stroke="#6b5b3e" stroke-width="2"/>';
+  s += '</g>';
+  return s;
+}
+function decorBois(x, y, n, feuille, trait) {
   let s = '<g opacity=".65">';
   for (let i = 0; i < n; i++) {
     const dx = x + (i % 3) * 26 - 26, dy = y + Math.floor(i / 3) * 22 + (i % 2) * 8;
-    s += '<path d="M' + dx + ' ' + dy + ' l9 -18 l9 18 z" fill="#5d6b4a" stroke="#4a5539" stroke-width="1"/>' +
+    s += '<path d="M' + dx + ' ' + dy + ' l9 -18 l9 18 z" fill="' + feuille + '" stroke="' + trait + '" stroke-width="1"/>' +
          '<rect x="' + (dx + 7.5) + '" y="' + dy + '" width="3" height="5" fill="#6b5b3e"/>';
   }
   return s + '</g>';
@@ -610,17 +690,33 @@ function decorBois(x, y, n) {
 async function chargerCarte() {
   contratsCache = await api('/api/contrats/' + encodeURIComponent(perso.nom));
   contratsParId = Object.fromEntries(contratsCache.map(c => [c.id, c]));
+  // Une région est « découverte » dès que son premier contrat n'est plus verrouillé par la trame.
+  const decouverte = r => contratsCache.some(c => c.region === r && !c.verrouilleHistoire);
+  if (!REGIONS[regionActive] || !decouverte(regionActive))
+    regionActive = Math.max(...Object.keys(REGIONS).map(Number).filter(decouverte));
+  const onglets = document.getElementById('ongletsRegion');
+  onglets.innerHTML = '';
+  for (const [r, meta] of Object.entries(REGIONS)) {
+    const b = document.createElement('button');
+    const ouverte = decouverte(parseInt(r));
+    b.textContent = ouverte ? meta.nom : 'Terres lointaines (achevez la trame)';
+    b.disabled = !ouverte;
+    b.classList.toggle('actif', parseInt(r) === regionActive);
+    if (ouverte) b.onclick = () => { regionActive = parseInt(r); chargerCarte(); };
+    onglets.appendChild(b);
+  }
+  const contratsRegion = contratsCache.filter(c => c.region === regionActive);
   const svg = document.getElementById('carteRegion');
-  let s = decorCarte();
+  let s = cadreCarte(regionActive) + REGIONS[regionActive].decor();
   // La route de la trame : pointillés reliant les contrats dans l'ordre. La partie
   // encore inconnue (au-delà du premier verrou d'histoire) s'efface dans la brume.
-  const premierInconnu = contratsCache.findIndex(c => c.verrouilleHistoire);
-  const connus = premierInconnu === -1 ? contratsCache : contratsCache.slice(0, premierInconnu + 1);
+  const premierInconnu = contratsRegion.findIndex(c => c.verrouilleHistoire);
+  const connus = premierInconnu === -1 ? contratsRegion : contratsRegion.slice(0, premierInconnu + 1);
   const points = liste => liste.map(c => c.x + ',' + c.y).join(' ');
-  if (premierInconnu !== -1 && premierInconnu < contratsCache.length - 1)
-    s += '<polyline points="' + points(contratsCache.slice(premierInconnu)) + '" fill="none" stroke="#8a7548" stroke-width="2.5" stroke-dasharray="2 10" opacity=".25"/>';
+  if (premierInconnu !== -1 && premierInconnu < contratsRegion.length - 1)
+    s += '<polyline points="' + points(contratsRegion.slice(premierInconnu)) + '" fill="none" stroke="#8a7548" stroke-width="2.5" stroke-dasharray="2 10" opacity=".25"/>';
   s += '<polyline points="' + points(connus) + '" fill="none" stroke="#6b5b3e" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round" opacity=".8"/>';
-  for (const c of contratsCache) s += marqueurContrat(c);
+  for (const c of contratsRegion) s += marqueurContrat(c);
   svg.innerHTML = s;
   svg.querySelectorAll('.marqueur[data-id]').forEach(m =>
     m.addEventListener('click', () => ouvrirContrat(parseInt(m.dataset.id))));
@@ -654,11 +750,15 @@ function ouvrirContrat(id) {
       '<h3>' + ech(c.nom) + '</h3>' +
       '<div class="meta">' + ech(c.lieu) + ' · Niveau ' + c.niveau + ' · ' + attrs + '</div>' +
       '<p>' + ech(c.texte) + '</p>' +
-      (c.adversaire ? '<div class="avertCombat"><span class="vignetteAdv">' + figureSVG(c.adversaire.figure, c.adversaire.classe) + '</span>' +
-                      '<span>⚔ Ce contrat se règle par les armes :<br><b>' + ech(c.adversaire.nom) + '</b> (' + c.adversaire.classe + ')</span></div>' : '') +
+      (function(){
+        const adv = c.adversaire || c.boss;
+        if (!adv) return '';
+        return '<div class="avertCombat"><span class="vignetteAdv">' + figureSVG(adv.figure, adv.classe) + '</span>' +
+               '<span>⚔ ' + (c.type === 'boss' ? 'Prime majeure' : 'Ce contrat se règle par les armes') + ' :<br><b>' + ech(adv.nom) + '</b> (' + adv.classe + ')</span></div>';
+      })() +
       '<div class="pied">' +
         '<span class="sceau">' + c.energie + '<small>énergie</small></span>' +
-        '<span class="gains">' + (c.type === 'boss' ? 'butin épique' : '~' + fmt(c.recompenses.or) + ' or · ' + fmt(c.recompenses.xp) + ' XP') + '</span>' +
+        '<span class="gains">' + (c.type === 'boss' ? 'butin ' + c.boss.butin.toLowerCase() + ' garanti' : '~' + fmt(c.recompenses.or) + ' or · ' + fmt(c.recompenses.xp) + ' XP') + '</span>' +
         (c.verrouilleNiveau ? '<span class="cadenas">réputation insuffisante</span>'
                             : '<button id="btnAccepter">' + (c.type === 'boss' ? 'Donner l’assaut' : 'Accepter') + '</button>') +
       '</div>' +
@@ -847,16 +947,16 @@ function bougerBulle(e) {
 }
 function cacherBulle() { const b = document.getElementById('infobulle'); if (b) b.remove(); }
 
-/* ---------- Équipement : panoplie + sac en grille ---------- */
-const POSITIONS_SLOTS = { casque:'slotCasque', amulette:'slotAmulette', arme:'slotArme', armure:'slotArmure', anneau:'slotAnneau', bottes:'slotBottes' };
-function silhouetteSVG() {
-  return '<svg class="silhouette" viewBox="0 0 100 200" fill="#39424f" stroke="none">' +
-    '<circle cx="50" cy="24" r="15"/>' +
-    '<path d="M35 44 Q50 38 65 44 L70 78 Q72 96 66 112 L62 112 L60 84 L40 84 L38 112 L34 112 Q28 96 30 78 Z"/>' +
-    '<path d="M33 46 L20 88 L26 92 L38 60 Z M67 46 L80 88 L74 92 L62 60 Z"/>' +
-    '<path d="M40 110 L36 168 L46 168 L49 120 L51 120 L54 168 L64 168 L60 110 Z"/>' +
-    '<path d="M35 168 L33 182 L48 182 L46 168 Z M65 168 L67 182 L52 182 L54 168 Z"/>' +
-  '</svg>';
+/* ---------- Équipement : cases portées + sac en grille ---------- */
+// Prix recalculés côté client pour afficher le coût des fusions (mêmes formules que le serveur).
+const orMissionClient = n => Math.round(CONF.or_mission.base * n ** CONF.or_mission.exposant);
+const prixObjetClient = (niveau, rarete) => Math.round(orMissionClient(niveau) * CONF.raretes_prix[rarete]);
+const rareteSuivante = r => CONF.raretes[CONF.raretes.indexOf(r) + 1];
+function coutFusion(a, b) {
+  const sup = rareteSuivante(a.rarete);
+  if (!sup || !CONF.raretes_prix[sup]) return null;
+  return { rarete: sup, niveau: Math.max(a.niveau, b.niveau),
+           cout: Math.round(prixObjetClient(Math.max(a.niveau, b.niveau), sup) * CONF.fusion_part_prix) };
 }
 function caseObjet(o, attrsSup) {
   return '<div class="case pleine contour-' + o.rarete + '" ' + attrsSup + ' draggable="true">' +
@@ -864,17 +964,17 @@ function caseObjet(o, attrsSup) {
 }
 async function afficherEquipement() {
   selectionSac = -1;
-  const cadre = document.getElementById('cadrePantin');
-  let html = silhouetteSVG();
-  for (const [emp, classePos] of Object.entries(POSITIONS_SLOTS)) {
+  const porte = document.getElementById('grillePorte');
+  let html = '';
+  for (const emp of CONF.emplacements) {
     const o = perso.equipement[emp];
-    html += '<div class="slotPantin ' + classePos + '">' +
+    html += '<div class="celluleEq">' +
       (o ? caseObjet(o, 'data-slot="' + emp + '"')
-         : '<div class="case" data-slot="' + emp + '"></div>') +
-      '<span class="etiquetteCase" style="position:absolute;bottom:-17px;left:50%;transform:translateX(-50%)">' + NOMS_EMPLACEMENTS[emp] + '</span>' +
+         : '<div class="case caseVide" data-slot="' + emp + '">' + svgIcone(emp, 'fantome') + '</div>') +
+      '<span class="etiquetteCase">' + NOMS_EMPLACEMENTS[emp] + '</span>' +
     '</div>';
   }
-  cadre.innerHTML = html;
+  porte.innerHTML = html;
 
   const b = perso.bonusEquipement;
   const morceaux = Object.entries(NOMS_EFFETS)
@@ -896,7 +996,8 @@ async function afficherEquipement() {
   await afficherForge();
 }
 function brancherInteractions() {
-  // Cases du sac : infobulle, sélection, double-clic pour équiper, glisser.
+  // Cases du sac : infobulle, sélection, double-clic pour équiper, glisser (équiper,
+  // vendre, ou FUSIONNER en déposant sur une pièce jumelle).
   document.querySelectorAll('#grilleSac .case.pleine').forEach(el => {
     const i = parseInt(el.dataset.index);
     const o = perso.inventaire[i];
@@ -909,11 +1010,21 @@ function brancherInteractions() {
       cacherBulle();
       e.dataTransfer.setData('text/plain', JSON.stringify({ de: 'sac', index: i, emplacement: o.emplacement }));
       document.querySelectorAll('.case[data-slot="' + o.emplacement + '"], #zoneVente').forEach(z => z.classList.add('cibleDepot'));
+      if (rareteSuivante(o.rarete)) perso.inventaire.forEach((p2, j) => {
+        if (j !== i && p2.emplacement === o.emplacement && p2.rarete === o.rarete)
+          document.querySelector('#grilleSac .case[data-index="' + j + '"]').classList.add('cibleFusion');
+      });
     });
-    el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot').forEach(z => z.classList.remove('cibleDepot')));
+    el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot,.cibleFusion').forEach(z => z.classList.remove('cibleDepot', 'cibleFusion')));
+    el.addEventListener('dragover', e => e.preventDefault());
+    el.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      const d = donneesDepot(e);
+      if (d && d.de === 'sac' && d.index !== i) fusionner(d.index, i);
+    });
   });
-  // Emplacements de la panoplie : infobulle, clic pour ranger, zone de dépôt.
-  document.querySelectorAll('.cadrePantin .case').forEach(el => {
+  // Cases de l'équipement porté : infobulle, clic pour ranger, zone de dépôt.
+  document.querySelectorAll('#grillePorte .case').forEach(el => {
     const emp = el.dataset.slot;
     const o = perso.equipement[emp];
     if (o) {
@@ -960,12 +1071,35 @@ function choisirObjetSac(i) {
   const o = perso.inventaire[i];
   const d = document.getElementById('detailObjet');
   const equipe = perso.equipement[o.emplacement];
+  // Une pièce jumelle (même type, même rareté) ? On propose la fusion, coût affiché.
+  const jumeau = perso.inventaire.findIndex((p2, j) => j !== i && p2.emplacement === o.emplacement && p2.rarete === o.rarete);
+  let boutonFusion = '';
+  if (jumeau !== -1) {
+    const f = coutFusion(o, perso.inventaire[jumeau]);
+    if (f) boutonFusion = '<button class="rar-' + f.rarete + '" onclick="fusionner(' + i + ',' + jumeau + ')">Fusionner → ' + f.rarete + ' · ' + fmt(f.cout) + ' or</button>';
+  }
   d.className = 'detailObjet bord-' + o.rarete;
   d.innerHTML =
     '<span class="objetNom rar-' + o.rarete + '">' + ech(o.nom) +
       '<small>' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + ' · ' + descObjet(o) +
       (equipe ? ' — remplacerait ' + ech(equipe.nom) : '') + '</small></span>' +
-    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button><button onclick="vendre(' + i + ')">Vendre</button></span>';
+    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button>' + boutonFusion + '<button onclick="vendre(' + i + ')">Vendre</button></span>';
+}
+async function fusionner(a, b) {
+  try {
+    cacherBulle();
+    const oA = perso.inventaire[a], oB = perso.inventaire[b];
+    if (!oA || !oB) return;
+    if (oA.emplacement !== oB.emplacement || oA.rarete !== oB.rarete)
+      return toast('Orin exige deux pièces de même type et de même rareté.', 'mauvais');
+    const f = coutFusion(oA, oB);
+    if (!f) return toast('Seules les primes majeures produisent du Légendaire — Orin refuse poliment.', 'mauvais');
+    if (!confirm('Fondre ' + oA.nom + ' et ' + oB.nom + ' en une pièce ' + f.rarete + ' (niv. ' + f.niveau + ') pour ' + fmt(f.cout) + ' or ?')) return;
+    const r = await api('/api/fusionner', { nom: perso.nom, indexA: a, indexB: b });
+    perso = r.personnage;
+    toast('La forge rugit : ' + r.objet.nom + ' (' + r.objet.rarete + ') pour ' + fmt(r.cout) + ' or.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
 }
 async function equiper(i) {
   try {
