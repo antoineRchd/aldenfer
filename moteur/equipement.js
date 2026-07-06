@@ -17,7 +17,8 @@ const SUFFIXES = {
   'Commun': ['de fer', 'de facture honnête', 'du colporteur'],
   'Inhabituel': ['du Gué', 'des Comptoirs', 'de la Braise'],
   'Rare': ["d'ambrefeu", 'du Rempart-aux-Corbeaux', 'des Terrasses'],
-  'Épique': ['du Long Hiver', 'de la Chiffonnière', 'vaskarien']
+  'Épique': ['du Long Hiver', 'de la Chiffonnière', 'vaskarien'],
+  'Légendaire': ['du Premier Éveil', 'de la Garnison sans sommeil', 'des Rois-Bâtisseurs']
 };
 
 const statObjet = (niveau, rarete) => Math.round(E.stat_base * niveau ** E.stat_exposant * E.raretes[rarete].mult);

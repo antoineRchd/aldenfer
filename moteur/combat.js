@@ -14,15 +14,15 @@ class Combattant {
   constructor(nom, classe, attrs, equipement = {}, modifs = {}) {
     this.nom = nom; this.classe = classe;
     const g = bonusEquipement(equipement);
+    // L'équipement ne donne que des attributs : on somme attributs propres + panoplie.
     this.agi = attrs.agilite + g.agilite;
     this.chanceStat = attrs.chance + g.chance;
-    this.pvMax = Math.round((C.pv_base + C.pv_par_endurance * attrs.endurance + g.pv) * (modifs.pv_mult || 1));
+    const endurance = attrs.endurance + g.endurance;
+    this.pvMax = Math.round((C.pv_base + C.pv_par_endurance * endurance + g.pv) * (modifs.pv_mult || 1));
     this.pv = this.pvMax;
     const offensif = { Guerrier: 'force', 'Rôdeur': 'agilite', Mage: 'intelligence', Ombre: 'agilite' }[classe];
-    // L'attribut offensif inclut le bonus d'équipement : chaque classe a un emplacement
-    // qui nourrit son attaque (anneau→force, bottes→agilité, amulette→intelligence).
     this.atk = (C.atk_base + C.atk_par_point * (attrs[offensif] + (g[offensif] || 0)) + g.atk) * (modifs.atk_mult || 1);
-    this.def = C.def_base + C.def_par_endurance * attrs.endurance + g.def;
+    this.def = C.def_base + C.def_par_endurance * endurance + g.def;
     this.bouclier = classe === 'Guerrier' ? C.guerrier_bouclier_pct * this.pvMax : 0;
     this.rage = 0;
     this.esquives = classe === 'Ombre' ? C.ombre_esquives_auto : 0;

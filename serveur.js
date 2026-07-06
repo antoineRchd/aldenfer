@@ -118,7 +118,18 @@ app.get('/api/constantes', (_req, res) => res.json({
   effets: K.equipement.effets,
   emplacements: K.equipement.emplacements,
   taille_inventaire: K.equipement.taille_inventaire,
-  raretes: Object.keys(K.equipement.raretes)
+  raretes: Object.keys(K.equipement.raretes),
+  raretes_prix: Object.fromEntries(Object.entries(K.equipement.raretes).map(([r, i]) => [r, i.prix])),
+  or_mission: { base: K.progression.or_mission_base, exposant: K.progression.or_mission_exposant },
+  fusion_part_prix: K.equipement.fusion_part_prix,
+  // De quoi écrire noir sur blanc ce que rapporte chaque attribut.
+  combat: {
+    atk_par_point: K.combat.atk_par_point,
+    pv_par_endurance: K.combat.pv_par_endurance,
+    def_par_endurance: K.combat.def_par_endurance,
+    crit_par_chance: K.combat.crit_par_chance,
+    precision_par_agi: K.combat.precision_par_agi
+  }
 }));
 
 app.post('/api/personnage', (req, res) => {
@@ -171,31 +182,34 @@ app.post('/api/mission', (req, res) => {
   if (p.energie < c.energie) return res.status(400).json({ erreur: "Pas assez d'énergie. Passez à la taverne." });
   p.energie -= c.energie;
 
-  // --- Prime majeure : combat de boss avec les bonus de préparation ---
+  // --- Prime majeure : combat de boss avec les bonus de préparation de SA région ---
   if (c.type === 'boss') {
-    const prepPv = Math.min(4, p.contratsAccomplis[19] || 0);
-    const modifsBoss = { pv_mult: 1.5 * (1 - 0.05 * prepPv), atk_mult: (p.contratsAccomplis[22] || 0) > 0 ? 0.9 : 1 };
-    const boss = creerBot('Brenn le Décrocheur', 'Ombre', c.niveau, EQ.panoplieBot(c.niveau, 'Commun'), modifsBoss);
-    boss.figure = 'brenn';
+    const preps = CONTRATS.filter(x => x.region === c.region && x.prep);
+    const accomplis = prep => preps.filter(x => x.prep === prep).reduce((s, x) => s + (p.contratsAccomplis[x.id] || 0), 0);
+    const prepPv = Math.min(4, accomplis('pv_boss'));
+    const initiative = accomplis('initiative') > 0;
+    const modifsBoss = { pv_mult: 1.5 * (1 - 0.05 * prepPv), atk_mult: accomplis('atk_boss') > 0 ? 0.9 : 1 };
+    const boss = creerBot(c.boss.nom, c.boss.classe, c.niveau, EQ.panoplieBot(c.niveau, 'Commun'), modifsBoss);
+    boss.figure = c.boss.figure;
     const joueur = combattantDuJoueur(p);
-    const r = duel(joueur, boss, { initiative_a: (p.contratsAccomplis[21] || 0) > 0 });
+    const r = duel(joueur, boss, { initiative_a: initiative });
     const victoire = r.vainqueur === p.nom;
     let recompenses = null;
     if (victoire) {
-      recompenses = { or: orMission(c.niveau) * 5, xp: xpMission(c.niveau) * 5, titre: 'Décrocheur de Décrocheur' };
+      recompenses = { or: orMission(c.niveau) * 5, xp: xpMission(c.niveau) * 5, titre: c.boss.titre };
       p.or += recompenses.or;
       p.contratsAccomplis[c.id] = (p.contratsAccomplis[c.id] || 0) + 1;
       p.titre = recompenses.titre;
-      // Butin épique garanti, comme promis par l'avis de prime.
+      // Butin garanti, comme promis par l'avis de prime (Légendaire pour les régions 2+).
       if (p.inventaire.length < K.equipement.taille_inventaire) {
-        recompenses.objet = EQ.tirerButin(c.niveau, 'Épique');
+        recompenses.objet = EQ.tirerButin(c.niveau, c.boss.butin);
         p.inventaire.push(recompenses.objet);
       }
       recompenses.niveauxGagnes = appliquerXp(p, recompenses.xp);
     } else if (Math.random() < K.missions.echec_chance_blessure) { p.blesse = true; p.blessureNiveau = c.niveau; }
     sauver(p);
     return res.json({ boss: true, victoire, journal: r.journal, recompenses,
-      preparation: { pvReduits: prepPv * 5, atkReduite: modifsBoss.atk_mult < 1, initiative: (p.contratsAccomplis[21] || 0) > 0 },
+      preparation: { pvReduits: prepPv * 5, atkReduite: modifsBoss.atk_mult < 1, initiative },
       personnage: etatPublic(p) });
   }
 
@@ -266,10 +280,12 @@ app.get('/api/forge/:nom', (req, res) => {
   // Catalogue : pour chaque emplacement × rareté, la stat et le prix à VOTRE niveau.
   const catalogue = [];
   for (const emp of K.equipement.emplacements)
-    for (const rar of Object.keys(K.equipement.raretes))
+    for (const [rar, infos] of Object.entries(K.equipement.raretes)) {
+      if (!infos.prix) continue; // le Légendaire ne se forge pas : butin de primes majeures
       catalogue.push({ emplacement: emp, rarete: rar, niveau: p.niveau,
                        stat: EQ.statObjet(p.niveau, rar), prix: EQ.prixObjet(p.niveau, rar),
                        effets: K.equipement.effets[emp] });
+    }
   res.json({ catalogue, revente: K.equipement.prix_revente });
 });
 
@@ -311,6 +327,33 @@ app.post('/api/desequiper', (req, res) => {
   p.inventaire.push(objet);
   sauver(p);
   res.json({ objet, personnage: etatPublic(p) });
+});
+
+// Fusion d'Orin : deux pièces identiques (même emplacement, même rareté) forgent
+// une pièce de la rareté supérieure au niveau de la meilleure des deux. Évier d'or
+// et évier d'objets — le Légendaire reste réservé aux primes majeures.
+const ORDRE_RARETES = Object.keys(K.equipement.raretes);
+app.post('/api/fusionner', (req, res) => {
+  const p = charger(req.body.nom);
+  const { indexA, indexB } = req.body;
+  const a = p && p.inventaire[indexA], b = p && p.inventaire[indexB];
+  if (!p || !a || !b || indexA === indexB) return res.status(400).json({ erreur: 'Il faut deux pièces du sac.' });
+  if (a.emplacement !== b.emplacement || a.rarete !== b.rarete)
+    return res.status(400).json({ erreur: 'Orin exige deux pièces de même type et de même rareté.' });
+  const rangSuivant = ORDRE_RARETES.indexOf(a.rarete) + 1;
+  const rareteSup = ORDRE_RARETES[rangSuivant];
+  if (!rareteSup || !K.equipement.raretes[rareteSup].prix)
+    return res.status(400).json({ erreur: 'Seules les primes majeures produisent du Légendaire — Orin refuse poliment.' });
+  const niveau = Math.max(a.niveau, b.niveau);
+  const cout = Math.round(EQ.prixObjet(niveau, rareteSup) * K.equipement.fusion_part_prix);
+  if (p.or < cout) return res.status(400).json({ erreur: `La fusion coûte ${cout} or de charbon et de sueur.` });
+  p.or -= cout;
+  // Retirer les deux pièces (indices décroissants pour ne pas se décaler)
+  for (const i of [indexA, indexB].sort((x, y) => y - x)) p.inventaire.splice(i, 1);
+  const objet = EQ.genererObjet(a.emplacement, niveau, rareteSup);
+  p.inventaire.push(objet);
+  sauver(p);
+  res.json({ objet, cout, personnage: etatPublic(p) });
 });
 
 app.post('/api/vendre', (req, res) => {
