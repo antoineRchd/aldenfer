@@ -18,8 +18,12 @@ print('  arme :', p['equipement']['arme']['nom'], '| bonus ATK :', round(p['bonu
 
 print('== Forge : achat, équipement, revente ==')
 # Gagner de quoi acheter d'abord (les 50 or de départ ne suffisent pas — voulu).
-# La trame se suit dans l'ordre : on prend toujours le contrat déverrouillé le plus avancé.
-for _ in range(10):
+# La trame se suit dans l'ordre : on prend toujours le contrat déverrouillé le plus avancé,
+# jusqu'à pouvoir payer un casque Commun (dont le prix suit notre niveau).
+for _ in range(40):
+    forge = api('/api/forge/TesteurV2')
+    ligne = next(l for l in forge['catalogue'] if l['emplacement']=='casque' and l['rarete']=='Commun')
+    if p['or'] >= ligne['prix']: break
     api('/api/dev/energie', {'nom':'TesteurV2'})
     dispo = [c for c in api('/api/contrats/TesteurV2') if not c['verrouille'] and c['type'] != 'boss']
     r = api('/api/mission', {'nom':'TesteurV2','contratId':max(dispo, key=lambda c: c['id'])['id']})
@@ -28,8 +32,6 @@ for _ in range(10):
         r2 = api('/api/soigner', {'nom':'TesteurV2'})
         if 'personnage' in r2: p = r2['personnage']
 print('  or après quelques contrats :', p['or'])
-forge = api('/api/forge/TesteurV2')
-ligne = next(l for l in forge['catalogue'] if l['emplacement']=='casque' and l['rarete']=='Commun')
 print('  casque Commun niv 1 : prix', ligne['prix'], '| stat', ligne['stat'])
 r = api('/api/forge/acheter', {'nom':'TesteurV2','emplacement':'casque','rarete':'Commun'})
 print('  acheté :', r['objet']['nom'], '| or restant', r['personnage']['or'])

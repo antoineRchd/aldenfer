@@ -99,8 +99,8 @@ class Combattant {
 function duel(a, b, modifs = {}) {
   const journal = [];
   journal.push({ t: 'init',
-    a: { nom: a.nom, classe: a.classe, pvMax: a.pvMax },
-    b: { nom: b.nom, classe: b.classe, pvMax: b.pvMax },
+    a: { nom: a.nom, classe: a.classe, pvMax: a.pvMax, figure: a.figure || null },
+    b: { nom: b.nom, classe: b.classe, pvMax: b.pvMax, figure: b.figure || null },
     texte: `${a.nom} affronte ${b.nom}.` });
   let premier, second;
   if (modifs.initiative_a) [premier, second] = [a, b];
