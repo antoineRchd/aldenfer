@@ -80,6 +80,26 @@ function etatPublic(p) {
   };
 }
 
+// La trame de la région se suit dans l'ordre : un contrat s'ouvre quand le précédent
+// a été accompli au moins une fois (en plus de la borne de niveau).
+const verrouHistoire = (p, c) => c.id > 1 && !(p.contratsAccomplis[c.id - 1] > 0);
+
+// Combat de mission : rejoue le duel jusqu'à ce que l'issue corresponde au jet de
+// réussite déjà tiré (l'équilibrage reste piloté par les attributs, le combat est
+// la mise en scène). Si le sort s'obstine, on ajuste la force de l'adversaire.
+function journalCombatMission(p, c, reussite) {
+  let mult = 1, journal = null;
+  for (let essai = 0; essai < 24; essai++) {
+    const bot = creerBot(c.adversaire.nom, c.adversaire.classe, c.niveau,
+                         EQ.panoplieBot(c.niveau, 'Commun'), { pv_mult: mult, atk_mult: mult });
+    const r = duel(combattantDuJoueur(p), bot);
+    if ((r.vainqueur === p.nom) === reussite) return r.journal;
+    journal = r.journal;
+    mult *= reussite ? 0.88 : 1.15;
+  }
+  return journal;
+}
+
 // Butin de mission : tirage d'objet, ajouté à l'inventaire si de la place.
 function tirerButinMission(p, contrat) {
   const chance = contrat.type === 'butin' ? K.equipement.chance_butin_contrat_butin : K.equipement.chance_butin_mission;
@@ -91,6 +111,15 @@ function tirerButinMission(p, contrat) {
 }
 
 // ---------- API ----------
+// Constantes utiles au client (effets d'équipement, emplacements...) — une seule
+// source de vérité : constantes.json. Le client ne duplique plus ces valeurs.
+app.get('/api/constantes', (_req, res) => res.json({
+  effets: K.equipement.effets,
+  emplacements: K.equipement.emplacements,
+  taille_inventaire: K.equipement.taille_inventaire,
+  raretes: Object.keys(K.equipement.raretes)
+}));
+
 app.post('/api/personnage', (req, res) => {
   const { nom, classe } = req.body;
   if (!nom || !K.classes[classe]) return res.status(400).json({ erreur: 'Nom ou classe invalide.' });
@@ -123,7 +152,9 @@ app.get('/api/contrats/:nom', (req, res) => {
   res.json(CONTRATS.map(c => ({
     ...c,
     accompli: p.contratsAccomplis[c.id] || 0,
-    verrouille: c.niveau > p.niveau + 1,
+    verrouilleNiveau: c.niveau > p.niveau + 1,
+    verrouilleHistoire: verrouHistoire(p, c),
+    verrouille: c.niveau > p.niveau + 1 || verrouHistoire(p, c),
     recompenses: { or: c.type === 'or' ? Math.round(orMission(c.niveau) * 1.3) : orMission(c.niveau),
                    xp: c.type === 'xp' ? Math.round(xpMission(c.niveau) * 1.3) : xpMission(c.niveau) }
   })));
@@ -135,6 +166,7 @@ app.post('/api/mission', (req, res) => {
   if (!p || !c) return res.status(404).json({ erreur: 'Contrat ou personnage introuvable.' });
   actualiserEnergie(p);
   if (c.niveau > p.niveau + 1) return res.status(400).json({ erreur: 'Contrat trop dangereux pour votre réputation actuelle.' });
+  if (verrouHistoire(p, c)) return res.status(400).json({ erreur: 'La trame ne vous a pas encore menée là : accomplissez le contrat précédent.' });
   if (p.energie < c.energie) return res.status(400).json({ erreur: "Pas assez d'énergie. Passez à la taverne." });
   p.energie -= c.energie;
 
@@ -158,7 +190,7 @@ app.post('/api/mission', (req, res) => {
         p.inventaire.push(recompenses.objet);
       }
       recompenses.niveauxGagnes = appliquerXp(p, recompenses.xp);
-    } else if (Math.random() < K.missions.echec_chance_blessure) p.blesse = true;
+    } else if (Math.random() < K.missions.echec_chance_blessure) { p.blesse = true; p.blessureNiveau = c.niveau; }
     sauver(p);
     return res.json({ boss: true, victoire, journal: r.journal, recompenses,
       preparation: { pvReduits: prepPv * 5, atkReduite: modifsBoss.atk_mult < 1, initiative: (p.contratsAccomplis[21] || 0) > 0 },
@@ -166,14 +198,21 @@ app.post('/api/mission', (req, res) => {
   }
 
   // --- Contrat normal : jet de réussite contre les attributs testés ---
+  // Les bonus d'attributs de l'équipement comptent (une amulette d'intelligence
+  // aide les missions de savoir, exactement comme en combat).
   let chance = K.missions.reussite_base;
   if (c.attributs.length) {
+    const bonusEq = EQ.bonusEquipement(p.equipement);
     const attendu = (36 + 6.5 * c.niveau ** 1.25) * K.missions.part_budget_attendue;
-    const possede = c.attributs.reduce((s, a) => s + p.attributs[a] * (p.blesse ? 1 - K.missions.blessure_malus : 1), 0) / c.attributs.length;
+    const possede = c.attributs.reduce((s, a) =>
+      s + p.attributs[a] * (p.blesse ? 1 - K.missions.blessure_malus : 1) + (bonusEq[a] || 0), 0) / c.attributs.length;
     chance += (possede / attendu - 1) * 40;
   }
   chance = Math.max(K.missions.reussite_min, Math.min(K.missions.reussite_max, chance));
   const reussite = Math.random() * 100 < chance;
+  // Les contrats à adversaire se règlent en combat animé (le journal est généré AVANT
+  // d'appliquer les gains, pour que le joueur combatte avec ses stats du moment).
+  const journal = c.adversaire ? journalCombatMission(p, c, reussite) : null;
   let resultat;
   if (reussite) {
     const mult = t => c.type === t ? 1.3 : 1;
@@ -185,12 +224,14 @@ app.post('/api/mission', (req, res) => {
   } else {
     const xpConsolation = Math.round(xpMission(c.niveau) * K.missions.echec_part_xp);
     const blessure = Math.random() < K.missions.echec_chance_blessure;
-    if (blessure) p.blesse = true;
+    // Le soin coûtera selon la gravité de la blessure (le niveau du contrat), pas selon
+    // votre niveau : une morsure de loup au Vieux-Bief ne vaut pas une plaie de guerre.
+    if (blessure) { p.blesse = true; p.blessureNiveau = c.niveau; }
     resultat = { reussite: false, chance: Math.round(chance), gains: { or: 0, xp: xpConsolation }, blessure,
                  niveauxGagnes: appliquerXp(p, xpConsolation) };
   }
   sauver(p);
-  res.json({ ...resultat, personnage: etatPublic(p) });
+  res.json({ ...resultat, journal, adversaire: c.adversaire || null, personnage: etatPublic(p) });
 });
 
 app.post('/api/attribut', (req, res) => {
@@ -209,7 +250,7 @@ app.post('/api/soigner', (req, res) => {
   const p = charger(req.body.nom);
   if (!p) return res.status(404).json({ erreur: 'Inconnu au registre.' });
   if (!p.blesse) return res.status(400).json({ erreur: 'Frère-Portier Aldric vous examine : rien à recoudre.' });
-  const cout = Math.round(orMission(p.niveau) * 0.8);
+  const cout = Math.round(orMission(Math.min(p.blessureNiveau || p.niveau, p.niveau)) * 0.8);
   if (p.or < cout) return res.status(400).json({ erreur: `Les soins coûtent ${cout} or. Le temple ne fait pas crédit.` });
   p.or -= cout; p.blesse = false;
   sauver(p);
@@ -255,6 +296,19 @@ app.post('/api/equiper', (req, res) => {
   if (ancien) p.inventaire.push(ancien); // l'ancien objet retourne dans le sac
   sauver(p);
   res.json({ objet, ancien, personnage: etatPublic(p) });
+});
+
+app.post('/api/desequiper', (req, res) => {
+  const p = charger(req.body.nom);
+  const emp = req.body.emplacement;
+  if (!p || !K.equipement.emplacements.includes(emp)) return res.status(400).json({ erreur: 'Emplacement inconnu.' });
+  const objet = p.equipement[emp];
+  if (!objet) return res.status(400).json({ erreur: 'Emplacement déjà vide.' });
+  if (p.inventaire.length >= K.equipement.taille_inventaire) return res.status(400).json({ erreur: 'Sac plein : impossible d’y ranger la pièce.' });
+  p.equipement[emp] = null;
+  p.inventaire.push(objet);
+  sauver(p);
+  res.json({ objet, personnage: etatPublic(p) });
 });
 
 app.post('/api/vendre', (req, res) => {
