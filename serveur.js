@@ -92,6 +92,7 @@ function journalCombatMission(p, c, reussite) {
   for (let essai = 0; essai < 24; essai++) {
     const bot = creerBot(c.adversaire.nom, c.adversaire.classe, c.niveau,
                          EQ.panoplieBot(c.niveau, 'Commun'), { pv_mult: mult, atk_mult: mult });
+    bot.figure = c.adversaire.figure || null;
     const r = duel(combattantDuJoueur(p), bot);
     if ((r.vainqueur === p.nom) === reussite) return r.journal;
     journal = r.journal;
@@ -175,6 +176,7 @@ app.post('/api/mission', (req, res) => {
     const prepPv = Math.min(4, p.contratsAccomplis[19] || 0);
     const modifsBoss = { pv_mult: 1.5 * (1 - 0.05 * prepPv), atk_mult: (p.contratsAccomplis[22] || 0) > 0 ? 0.9 : 1 };
     const boss = creerBot('Brenn le Décrocheur', 'Ombre', c.niveau, EQ.panoplieBot(c.niveau, 'Commun'), modifsBoss);
+    boss.figure = 'brenn';
     const joueur = combattantDuJoueur(p);
     const r = duel(joueur, boss, { initiative_a: (p.contratsAccomplis[21] || 0) > 0 });
     const victoire = r.vainqueur === p.nom;

@@ -12,7 +12,7 @@ curl -s -X POST localhost:3000/api/mission -H 'Content-Type: application/json' -
 echo "== Achat d'attribut =="
 curl -s -X POST localhost:3000/api/attribut -H 'Content-Type: application/json' -d '{"nom":"Testeur","attribut":"agilite"}' | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('erreur') or 'agilité -> %s pour %s or (reste %s or)'%(d['nouvelleValeur'],d['cout'],d['personnage']['or']))"
 echo "== Duel =="
-curl -s -X POST localhost:3000/api/duel -H 'Content-Type: application/json' -d '{"nom":"Testeur"}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('vs',d['adversaire'],'->','VICTOIRE' if d['victoire'] else 'défaite','|',len(d['journal']),'lignes de rapport'); print('  extrait:',d['journal'][2][:110])"
+curl -s -X POST localhost:3000/api/duel -H 'Content-Type: application/json' -d '{"nom":"Testeur"}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('vs',d['adversaire'],'->','VICTOIRE' if d['victoire'] else 'défaite','|',len(d['journal']),'lignes de rapport'); print('  extrait:',d['journal'][2]['texte'][:110])"
 echo "== Grind automatisé : monter au niveau 10 et affronter Brenn =="
 python3 - << 'PYEOF'
 import json, urllib.request

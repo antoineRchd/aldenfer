@@ -7,6 +7,10 @@ node serveur.js
 ```
 Puis ouvrir http://localhost:3000 dans un navigateur.
 
+## Nouveautés v3.1 (tout-combat + designs de personnages)
+- **Toute la progression passe par le combat** : les 25 contrats ont désormais un adversaire nommé (le renard botté, la Chiffonnière, le champion de Brenn...). Le jet de réussite sur les attributs reste le juge de l'issue — l'équilibrage ne bouge pas — mais chaque mission se joue en scène de combat animée. L'animation du parchemin reste en secours technique.
+- **Galerie de personnages SVG** (`FIGURES` dans le client) : les 4 classes + un bestiaire de 8 adversaires (brigand, garde de Brenn, loup, sanglier, chien, renard, créature, Brenn) dessinés dans la palette de la DA. Utilisés dans la scène de combat (l'adversaire de droite est en miroir), l'écran de création de personnage et la vignette du popup de contrat. La figure voyage dans l'événement `init` du journal de combat (`figure` sur l'adversaire, classe du joueur sinon).
+
 ## Nouveautés v3 (carte, combats de mission, inventaire Gangster)
 - **Carte des Faubourgs du Gué** : les 25 contrats sont des lieux sur une carte SVG (rivière du Bief, Noirlac, bois, cité d'Aldenfer), reliés par la route de la trame. **La trame se suit dans l'ordre** : un contrat s'ouvre quand le précédent a été accompli une fois (en plus de la borne de niveau) ; les terres au-delà restent « inconnues » (?). Les contrats accomplis restent rejouables pour le grind.
 - **Les contrats se règlent en combat animé** : 11 des 25 contrats ont un adversaire nommé (le sanglier du banquet, la chose du puits, les hommes de Brenn...). Le serveur tire la réussite sur les attributs comme avant (l'équilibrage ne change pas), puis génère un vrai journal de combat cohérent avec l'issue — le client le joue en plein écran. Les contrats « pacifiques » gardent l'animation du parchemin.

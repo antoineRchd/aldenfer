@@ -33,8 +33,10 @@ button.principal:hover{background:var(--ambrefeu-vif)}
 .registre label{display:block;color:var(--brume);font-size:14px;text-transform:uppercase;letter-spacing:.1em;margin:16px 0 6px}
 .registre input{width:100%;padding:10px;font-family:'Alegreya',serif;font-size:18px;background:var(--noirlac);border:1px solid var(--fer-clair);border-radius:3px;color:#e8ecf2}
 .choixClasses{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
-.choixClasses button{padding:14px 8px;text-align:left;border:1px solid var(--fer-clair);background:var(--noirlac)}
+.choixClasses button{padding:12px 10px;text-align:left;border:1px solid var(--fer-clair);background:var(--noirlac);display:flex;align-items:center;gap:10px}
 .choixClasses button.actif{border-color:var(--ambrefeu);background:#2a2418}
+.choixClasses .figMini{width:46px;height:56px;flex-shrink:0}
+.choixClasses .figMini svg{width:100%;height:100%}
 .choixClasses .nomClasse{font-family:'Grenze Gotisch',serif;font-size:22px;color:var(--ambrefeu);display:block}
 .choixClasses small{color:var(--brume)}
 #ecranRegistre .principal{width:100%;margin-top:24px;padding:13px;font-size:19px}
@@ -100,7 +102,9 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .avis .cadenas{font-size:13px;color:var(--sang);font-weight:700}
 .avis .compteur{position:absolute;top:8px;right:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a7548}
 .avis.prime{background:linear-gradient(160deg,#e9d5a5,#d9bd82);outline:2px solid var(--sang);outline-offset:-6px}
-.avis .avertCombat{font-size:13px;color:#7d3b32;font-style:italic;margin-bottom:10px}
+.avis .avertCombat{font-size:13px;color:#7d3b32;font-style:italic;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.avis .vignetteAdv{width:44px;height:52px;flex-shrink:0;background:#d5c69f;border:1px solid #b3a173;border-radius:4px;padding:2px}
+.avis .vignetteAdv svg{width:100%;height:100%}
 
 /* ---------- Animation de résolution de quête (sans combat) ---------- */
 #voileMission{position:fixed;inset:0;background:rgba(10,12,16,.82);display:flex;align-items:center;justify-content:center;z-index:100;cursor:pointer}
@@ -135,7 +139,9 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .duelliste{width:44%;text-align:center;position:relative;transition:transform .18s ease-out}
 .duelliste .pancarte{font-family:'Grenze Gotisch',serif;font-size:19px;line-height:1.1;min-height:44px}
 .duelliste .classeSous{color:var(--brume);font-size:13px;margin-bottom:8px}
-.figurine{width:86px;height:98px;margin:0 auto 10px;background:var(--fer);border:2px solid var(--fer-clair);border-radius:8px 8px 26px 26px;display:flex;align-items:center;justify-content:center;font-family:'Grenze Gotisch',serif;font-size:46px;color:var(--ambrefeu);position:relative;transition:transform .18s ease-out,filter .18s}
+.figurine{width:96px;height:108px;margin:0 auto 10px;background:radial-gradient(ellipse at 50% 85%,#2a2119 0%,var(--fer) 70%);border:2px solid var(--fer-clair);border-radius:8px 8px 26px 26px;display:flex;align-items:flex-end;justify-content:center;padding:5px 4px 2px;position:relative;transition:transform .18s ease-out,filter .18s}
+.figurine svg{width:100%;height:100%;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}
+.duelliste.droite .figurine svg{transform:scaleX(-1)}
 .duelliste.attaque .figurine{transform:translateX(26px) rotate(3deg)}
 .duelliste.droite.attaque .figurine{transform:translateX(-26px) rotate(-3deg)}
 .duelliste.touche .figurine{animation:secoue .3s}
@@ -236,7 +242,7 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   .sceauResultat.visible{opacity:.92;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}
   .duelliste,.figurine{transition:none!important}
 }
-@media(max-width:640px){.stats{margin-left:0;flex-wrap:wrap;gap:10px}header h1{font-size:26px}.figurine{width:64px;height:76px;font-size:34px}}
+@media(max-width:640px){.stats{margin-left:0;flex-wrap:wrap;gap:10px}header h1{font-size:26px}.figurine{width:70px;height:82px}}
 .piedDev{margin-top:36px;color:#4a5260;font-size:13px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .piedDev button{font-size:13px;padding:5px 10px;background:#1c222b;color:#6b7585}
 </style>
@@ -348,7 +354,115 @@ const DESCRIPTIONS_ATTRS = {
   force:"Dégâts physiques", agilite:"Initiative, précision, esquive", intelligence:"Dégâts magiques, missions de savoir",
   endurance:"Points de vie, défense", chance:"Coups critiques", ruse:"Réussite des missions"
 };
-const GLYPHES = { "Guerrier":"G", "Rôdeur":"R", "Mage":"M", "Ombre":"O" };
+// ---------- Galerie de personnages (SVG stylisés, palette de la DA) ----------
+const CLASSE_FIGURE = { "Guerrier":"guerrier", "Rôdeur":"rodeur", "Mage":"mage", "Ombre":"ombre" };
+const FIGURES = {
+  guerrier:
+    '<rect x="37" y="94" width="11" height="24" rx="2" fill="#262e39"/><rect x="52" y="94" width="11" height="24" rx="2" fill="#262e39"/>' +
+    '<path d="M27 50 h46 l6 46 H21 Z" fill="#39424f"/><path d="M27 50 h46 l2 12 H25 Z" fill="#2f3844"/>' +
+    '<circle cx="27" cy="55" r="9" fill="#4a5568"/><circle cx="73" cy="55" r="9" fill="#4a5568"/>' +
+    '<rect x="30" y="74" width="40" height="6" fill="#262e39"/><rect x="46" y="72" width="9" height="9" fill="#e0952f"/>' +
+    '<rect x="83" y="26" width="5" height="46" fill="#8b95a3"/><path d="M83 26 l2.5 -8 2.5 8z" fill="#8b95a3"/>' +
+    '<rect x="77" y="72" width="17" height="5" rx="2" fill="#5b4a2d"/><rect x="83" y="77" width="5" height="13" fill="#3a2f1c"/>' +
+    '<path d="M4 52 h24 v22 q0 9 -12 13 q-12 -4 -12 -13 Z" fill="#4a5568" stroke="#262e39" stroke-width="2"/><circle cx="16" cy="66" r="4.5" fill="#e0952f"/>' +
+    '<path d="M31 44 v-10 a19 19 0 0 1 38 0 v10 Z" fill="#8b95a3"/><rect x="47" y="24" width="6" height="20" fill="#6b7585"/>' +
+    '<rect x="36" y="33" width="8" height="4" fill="#14181f"/><rect x="56" y="33" width="8" height="4" fill="#14181f"/>' +
+    '<path d="M50 13 q16 -8 24 4 q-12 4 -24 -1z" fill="#e0952f"/>',
+  rodeur:
+    '<rect x="38" y="92" width="10" height="26" rx="2" fill="#262e39"/><rect x="52" y="92" width="10" height="26" rx="2" fill="#262e39"/>' +
+    '<rect x="9" y="44" width="12" height="28" rx="4" fill="#5b4a2d"/>' +
+    '<path d="M13 44 l4 -14 2 1 -2 14z" fill="#8b95a3"/><path d="M19 44 l7 -12 2 1 -5 12z" fill="#8b95a3"/><path d="M15 30 l3 -6 3 7z" fill="#e0952f"/>' +
+    '<path d="M30 48 h40 l5 44 H25 Z" fill="#3d4a3c"/><path d="M30 48 L72 88 v6 h-6 L30 56 Z" fill="#5b4a2d"/>' +
+    '<path d="M50 8 q-21 9 -21 28 v6 h42 v-6 q0 -19 -21 -28z" fill="#4a5a48"/>' +
+    '<path d="M37 34 h26 v9 H37z" fill="#14181f"/><circle cx="44" cy="38" r="2.2" fill="#e0952f"/><circle cx="56" cy="38" r="2.2" fill="#e0952f"/>' +
+    '<path d="M83 24 q16 36 0 72" stroke="#5b4a2d" fill="none" stroke-width="4" stroke-linecap="round"/>' +
+    '<line x1="83" y1="24" x2="83" y2="96" stroke="#d8c49a" stroke-width="1.5"/>',
+  mage:
+    '<path d="M34 54 h32 l11 64 H23 Z" fill="#443f5e"/><line x1="34" y1="92" x2="68" y2="92" stroke="#d8c49a" stroke-width="2.5"/>' +
+    '<rect x="39" y="42" width="22" height="14" fill="#14181f"/><circle cx="45" cy="50" r="2.8" fill="#e0952f"/><circle cx="55" cy="50" r="2.8" fill="#e0952f"/>' +
+    '<path d="M50 2 L32 38 h36 Z" fill="#3a3550"/><ellipse cx="50" cy="39" rx="24" ry="4.5" fill="#332e48"/>' +
+    '<path d="M60 12 q6 4 4 10 l-6 -2z" fill="#e0952f" opacity=".9"/>' +
+    '<rect x="10" y="32" width="4.5" height="84" rx="2" fill="#5b4a2d"/>' +
+    '<circle cx="12" cy="24" r="13" fill="#e0952f" opacity=".22"/><circle cx="12" cy="24" r="8" fill="#e0952f"/><circle cx="10" cy="21" r="3" fill="#ffd9a0"/>',
+  ombre:
+    '<rect x="39" y="92" width="9" height="26" rx="2" fill="#1c222b"/><rect x="52" y="92" width="9" height="26" rx="2" fill="#1c222b"/>' +
+    '<path d="M34 44 h32 l7 48 H27 Z" fill="#2b323d"/>' +
+    '<path d="M34 52 L66 62 v5 L34 57z" fill="#232a35"/><path d="M34 66 L66 76 v5 L34 71z" fill="#232a35"/>' +
+    '<path d="M50 10 q-17 7 -17 24 v6 h34 v-6 q0 -17 -17 -24z" fill="#262e39"/>' +
+    '<rect x="37" y="29" width="26" height="8" fill="#14181f"/><rect x="42" y="32" width="7" height="2.5" fill="#e0952f"/><rect x="53" y="32" width="7" height="2.5" fill="#e0952f"/>' +
+    '<path d="M64 34 q16 4 14 20 l-6 -3 q1 -9 -10 -12z" fill="#2f3844"/>' +
+    '<path d="M24 76 l-8 26 5 2 9 -25z" fill="#8b95a3"/><path d="M27 74 l-4 -2 3 -5 4 3z" fill="#3a2f1c"/>' +
+    '<path d="M76 76 l8 26 -5 2 -9 -25z" fill="#8b95a3"/><path d="M73 74 l4 -2 -3 -5 -4 3z" fill="#3a2f1c"/>',
+  brigand:
+    '<rect x="38" y="92" width="10" height="26" rx="2" fill="#262e39"/><rect x="53" y="92" width="10" height="26" rx="2" fill="#262e39"/>' +
+    '<path d="M29 48 h42 l6 46 H23 Z" fill="#5b4a2d"/><path d="M42 48 h16 l3 46 H40 Z" fill="#8b7355"/>' +
+    '<circle cx="50" cy="29" r="14" fill="#d8c49a"/>' +
+    '<path d="M36 25 a14 14 0 0 1 28 0 l-1 5 H37 Z" fill="#9c3b32"/><path d="M63 22 q8 -2 9 4 l-7 2z" fill="#9c3b32"/>' +
+    '<circle cx="44" cy="33" r="2" fill="#14181f"/><circle cx="57" cy="33" r="2" fill="#14181f"/>' +
+    '<line x1="55" y1="27" x2="61" y2="38" stroke="#9c3b32" stroke-width="2"/>' +
+    '<path d="M40 40 q10 7 20 0 l0 4 q-10 6 -20 0z" fill="#6b5b3e" opacity=".55"/>' +
+    '<path d="M74 58 l14 -34 q8 -4 10 6 l-16 32z" fill="#6b5b3e"/><circle cx="92" cy="27" r="5" fill="#6b5b3e"/>',
+  garde:
+    '<rect x="38" y="92" width="10" height="26" rx="2" fill="#262e39"/><rect x="52" y="92" width="10" height="26" rx="2" fill="#262e39"/>' +
+    '<path d="M30 44 h40 l5 48 H25 Z" fill="#39424f"/><path d="M30 44 L73 82 v8 L30 53 Z" fill="#9c3b32"/>' +
+    '<rect x="42" y="28" width="16" height="9" fill="#14181f"/><circle cx="46" cy="32" r="2" fill="#e0952f"/><circle cx="54" cy="32" r="2" fill="#e0952f"/>' +
+    '<path d="M38 26 a12 12 0 0 1 24 0z" fill="#8b95a3"/><ellipse cx="50" cy="26" rx="21" ry="5" fill="#8b95a3"/>' +
+    '<rect x="85" y="16" width="4.5" height="100" rx="2" fill="#5b4a2d"/><path d="M87 2 l7 16 h-14z" fill="#8b95a3"/>',
+  loup:
+    '<rect x="30" y="86" width="7" height="28" fill="#2b323d"/><rect x="44" y="88" width="7" height="26" fill="#2b323d"/><rect x="58" y="88" width="7" height="26" fill="#2b323d"/><rect x="70" y="86" width="7" height="28" fill="#2b323d"/>' +
+    '<path d="M24 80 q-14 4 -18 20 l6 2 q4 -12 14 -14z" fill="#39424f"/>' +
+    '<ellipse cx="52" cy="76" rx="30" ry="17" fill="#39424f"/>' +
+    '<path d="M76 66 q10 -6 16 0 l8 8 -6 3 4 5 -14 3 q-9 -1 -12 -9z" fill="#39424f"/>' +
+    '<path d="M78 60 l2 -12 8 10z" fill="#39424f"/><path d="M88 60 l4 -10 6 12z" fill="#2b323d"/>' +
+    '<circle cx="88" cy="70" r="2.5" fill="#e0952f"/><path d="M96 76 l6 3 -6 2z" fill="#14181f"/>',
+  sanglier:
+    '<rect x="32" y="88" width="8" height="24" fill="#241f1a"/><rect x="46" y="90" width="8" height="22" fill="#241f1a"/><rect x="60" y="90" width="8" height="22" fill="#241f1a"/><rect x="70" y="88" width="8" height="24" fill="#241f1a"/>' +
+    '<path d="M20 84 q-2 -26 32 -28 q28 0 32 22 l4 8 q-2 8 -12 8 H30 q-10 -2 -10 -10z" fill="#3a2f26"/>' +
+    '<path d="M26 58 l8 -8 6 8 8 -7 6 8 8 -7 6 8 8 -6 4 8 H26z" fill="#241f1a"/>' +
+    '<path d="M82 70 q12 0 14 10 l2 6 -10 4 q-8 0 -10 -8z" fill="#3a2f26"/>' +
+    '<path d="M94 84 q8 -8 4 -14 l-4 4 q2 4 -2 8z" fill="#e6d9b8"/>' +
+    '<circle cx="88" cy="74" r="2.5" fill="#c75b4e"/><ellipse cx="97" cy="86" rx="4" ry="3" fill="#241f1a"/>' +
+    '<path d="M20 78 q-8 0 -6 8 q6 2 8 -4z" fill="#3a2f26"/>',
+  chien:
+    '<rect x="32" y="86" width="7" height="28" fill="#4a4034"/><rect x="45" y="88" width="7" height="26" fill="#4a4034"/><rect x="58" y="88" width="7" height="26" fill="#4a4034"/><rect x="69" y="86" width="7" height="28" fill="#4a4034"/>' +
+    '<path d="M22 80 q-10 -6 -6 -18 l6 2 q-2 8 4 12z" fill="#5b4f3e"/>' +
+    '<ellipse cx="51" cy="76" rx="28" ry="16" fill="#5b4f3e"/>' +
+    '<path d="M74 64 q10 -6 16 2 l6 8 -5 3 3 5 -12 2 q-9 -1 -11 -9z" fill="#5b4f3e"/>' +
+    '<path d="M76 58 q-2 -12 6 -10 q6 2 2 12z" fill="#4a4034"/>' +
+    '<circle cx="86" cy="70" r="2.5" fill="#e0952f"/><ellipse cx="96" cy="78" rx="3.5" ry="2.5" fill="#14181f"/>' +
+    '<path d="M72 70 q6 8 0 14" stroke="#9c3b32" stroke-width="3.5" fill="none"/>',
+  renard:
+    '<rect x="34" y="84" width="6" height="26" fill="#7a4a28"/><rect x="46" y="86" width="6" height="24" fill="#7a4a28"/><rect x="58" y="86" width="6" height="24" fill="#7a4a28"/><rect x="66" y="84" width="6" height="26" fill="#7a4a28"/>' +
+    '<path d="M28 78 q-20 -2 -24 14 q10 8 22 0 q6 -4 6 -10z" fill="#9c5c2e"/><path d="M6 90 q4 6 12 4 l-2 -6z" fill="#e6d9b8"/>' +
+    '<ellipse cx="50" cy="74" rx="25" ry="13" fill="#9c5c2e"/>' +
+    '<path d="M70 64 q10 -4 14 2 l10 8 -14 4 q-8 0 -10 -7z" fill="#9c5c2e"/>' +
+    '<path d="M72 58 l1 -14 9 12z" fill="#9c5c2e"/><path d="M74 61 l1 -8 5 7z" fill="#14181f"/>' +
+    '<path d="M84 58 l3 -13 7 13z" fill="#9c5c2e"/>' +
+    '<circle cx="84" cy="68" r="2.2" fill="#e0952f"/><path d="M92 72 l4 2 -4 2z" fill="#14181f"/>' +
+    '<path d="M74 74 q10 2 14 0 l6 4 -8 2 q-8 2 -12 -2z" fill="#e6d9b8" opacity=".8"/>',
+  creature:
+    '<path d="M18 98 q-6 -34 16 -44 q4 -20 20 -16 q18 -6 24 16 q18 12 10 44 q-16 10 -34 10 q-22 0 -36 -10z" fill="#2c3a33"/>' +
+    '<path d="M14 84 q-14 -4 -10 -22 q8 0 10 10 q2 6 0 12z" fill="#2c3a33"/>' +
+    '<path d="M88 82 q14 -8 8 -24 q-8 2 -8 12 q-2 6 0 12z" fill="#243029"/>' +
+    '<circle cx="40" cy="62" r="6" fill="#e0952f"/><circle cx="60" cy="56" r="4" fill="#e0952f"/><circle cx="68" cy="70" r="3" fill="#e0952f"/>' +
+    '<circle cx="40" cy="62" r="2.5" fill="#14181f"/><circle cx="60" cy="56" r="1.6" fill="#14181f"/>' +
+    '<path d="M30 104 q2 8 -2 12 q-4 -6 -2 -12z" fill="#2c3a33"/><path d="M56 106 q2 8 -2 12 q-4 -6 -2 -12z" fill="#2c3a33"/><path d="M76 102 q2 8 -2 12 q-4 -6 -2 -12z" fill="#243029"/>',
+  brenn:
+    '<path d="M28 14 L46 40 l-5 3 L23 18 Z" fill="#5f6a78"/><path d="M72 14 L54 40 l5 3 L77 18 Z" fill="#5f6a78"/>' +
+    '<path d="M21 21 l11 -8 2.5 3.5 -11 8z" fill="#3a2f1c"/><path d="M79 21 l-11 -8 -2.5 3.5 11 8z" fill="#3a2f1c"/>' +
+    '<path d="M24 48 h52 l10 62 -12 8 -4 -14 H32 l-4 14 -12 -8z" fill="#20262f"/>' +
+    '<path d="M30 46 h40 l5 44 H25 Z" fill="#39424f"/>' +
+    '<path d="M30 46 L74 84 v9 L30 56 Z" fill="#9c3b32"/>' +
+    '<path d="M22 46 q-4 12 8 14 l4 -12z" fill="#4a5568"/><path d="M78 46 q4 12 -8 14 l-4 -12z" fill="#4a5568"/>' +
+    '<circle cx="50" cy="30" r="13" fill="#d8c49a"/>' +
+    '<path d="M37 26 a13 13 0 0 1 26 0 l-2 -2 -5 3 -6 -4 -6 4 -5 -3z" fill="#2b2317"/>' +
+    '<circle cx="45" cy="31" r="2" fill="#e0952f"/><circle cx="56" cy="31" r="2" fill="#e0952f"/>' +
+    '<line x1="54" y1="22" x2="60" y2="36" stroke="#9c3b32" stroke-width="2"/>'
+};
+function figureSVG(figure, classe) {
+  const dessin = FIGURES[figure] || FIGURES[CLASSE_FIGURE[classe]] || FIGURES.brigand;
+  return '<svg viewBox="0 0 100 120" role="img">' + dessin + '</svg>';
+}
 const NOMS_EMPLACEMENTS = { arme:"Arme", armure:"Armure", casque:"Casque", bottes:"Bottes", amulette:"Amulette", anneau:"Anneau" };
 const NOMS_EFFETS = { atk:"ATK", def:"DÉF", pv:"PV", force:"FOR", agilite:"AGI", intelligence:"INT", chance:"CHA", ruse:"RUSE" };
 // Icônes de pièces d'équipement (traits simples, couleur = rareté)
@@ -392,7 +506,8 @@ function svgIcone(emplacement, rarete) {
   const conteneur = document.getElementById('choixClasses');
   for (const [nom, desc] of Object.entries(DESCRIPTIONS_CLASSES)) {
     const b = document.createElement('button');
-    b.innerHTML = '<span class="nomClasse">' + nom + '</span><small>' + desc + '</small>';
+    b.innerHTML = '<span class="figMini">' + figureSVG(CLASSE_FIGURE[nom]) + '</span>' +
+      '<span class="texteClasse"><span class="nomClasse">' + nom + '</span><small>' + desc + '</small></span>';
     b.onclick = () => { classeChoisie = nom;
       conteneur.querySelectorAll('button').forEach(x => x.classList.remove('actif')); b.classList.add('actif'); };
     conteneur.appendChild(b);
@@ -539,7 +654,8 @@ function ouvrirContrat(id) {
       '<h3>' + ech(c.nom) + '</h3>' +
       '<div class="meta">' + ech(c.lieu) + ' · Niveau ' + c.niveau + ' · ' + attrs + '</div>' +
       '<p>' + ech(c.texte) + '</p>' +
-      (c.adversaire ? '<div class="avertCombat">⚔ Ce contrat se règle par les armes : ' + ech(c.adversaire.nom) + ' (' + c.adversaire.classe + ').</div>' : '') +
+      (c.adversaire ? '<div class="avertCombat"><span class="vignetteAdv">' + figureSVG(c.adversaire.figure, c.adversaire.classe) + '</span>' +
+                      '<span>⚔ Ce contrat se règle par les armes :<br><b>' + ech(c.adversaire.nom) + '</b> (' + c.adversaire.classe + ')</span></div>' : '') +
       '<div class="pied">' +
         '<span class="sceau">' + c.energie + '<small>énergie</small></span>' +
         '<span class="gains">' + (c.type === 'boss' ? 'butin épique' : '~' + fmt(c.recompenses.or) + ' or · ' + fmt(c.recompenses.xp) + ' XP') + '</span>' +
@@ -922,7 +1038,7 @@ function coteDuelliste(cote, d) {
   return '<div class="duelliste ' + cote + '" data-nom="' + ech(d.nom).replace(/"/g,'') + '">' +
     '<div class="pancarte">' + ech(d.nom) + '</div>' +
     '<div class="classeSous">' + d.classe + '</div>' +
-    '<div class="figurine">' + GLYPHES[d.classe] + '</div>' +
+    '<div class="figurine">' + figureSVG(d.figure, d.classe) + '</div>' +
     '<div class="barrePv"><div style="width:100%"></div></div>' +
     '<div class="chiffresPv">' + fmt(d.pvMax) + ' / ' + fmt(d.pvMax) + ' PV</div>' +
   '</div>';
