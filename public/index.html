@@ -56,26 +56,53 @@ nav{display:flex;gap:4px;margin-bottom:22px;flex-wrap:wrap}
 nav button{background:none;border-radius:4px 4px 0 0;color:var(--brume);font-family:'Grenze Gotisch',serif;font-size:21px;padding:8px 20px}
 nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 
-/* ---------- Tableau des primes ---------- */
-#panneauContrats{background:linear-gradient(180deg,#2a2119,#241d16);border:6px solid #1b1510;border-radius:4px;padding:26px;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
-.grilleContrats{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
-.avis{position:relative;background:var(--parchemin);color:var(--encre);padding:18px 16px 14px;border-radius:1px;box-shadow:2px 4px 8px rgba(0,0,0,.55);transform:rotate(var(--pente,0deg))}
+/* ---------- Carte de la région ---------- */
+#panneauContrats{background:linear-gradient(180deg,#2a2119,#241d16);border:6px solid #1b1510;border-radius:4px;padding:14px;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
+#carteRegion{display:block;width:100%;height:auto;border-radius:2px}
+#carteRegion .marqueur{cursor:pointer}
+#carteRegion .marqueur circle.fond{transition:r .15s}
+#carteRegion .marqueur:hover circle.fond{r:22}
+#carteRegion .marqueur.dispo circle.fond{fill:var(--ambrefeu);stroke:#7a5216}
+#carteRegion .marqueur.dispo circle.halo{fill:none;stroke:var(--ambrefeu);animation:pulseHalo 2s ease-out infinite}
+@keyframes pulseHalo{0%{r:18;opacity:.9}100%{r:34;opacity:0}}
+#carteRegion .marqueur.accompli circle.fond{fill:#5d6b4a;stroke:#3a4430}
+#carteRegion .marqueur.verrouNiv circle.fond{fill:#a99f86;stroke:#7d745e}
+#carteRegion .marqueur.inconnu circle.fond{fill:#cabfa0;stroke:#a99f86}
+#carteRegion .marqueur.inconnu{cursor:default}
+#carteRegion .marqueur.boss circle.fond{fill:var(--sang);stroke:#5e211b}
+#carteRegion .marqueur.boss.accompli circle.fond{fill:#5d6b4a;stroke:#3a4430}
+#carteRegion .numMarqueur{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;fill:#241d10;text-anchor:middle;pointer-events:none}
+#carteRegion .marqueur.boss .numMarqueur{fill:#f3e4d2;font-size:17px}
+#carteRegion .marqueur.accompli .numMarqueur{fill:#e9e2cc}
+#carteRegion .etiquetteLieu{font-family:'Alegreya',serif;font-size:12.5px;font-style:italic;fill:#5b4a2d;text-anchor:middle;pointer-events:none}
+#carteRegion .cocheAccompli{font-size:11px;fill:#e9e2cc;text-anchor:middle;pointer-events:none;font-family:'IBM Plex Mono',monospace}
+.legendeCarte{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;padding:0 6px;color:#8a7548;font-size:13.5px;font-style:italic}
+.legendeCarte span::before{content:"●";margin-right:5px}
+.legendeCarte .lDispo::before{color:var(--ambrefeu)}
+.legendeCarte .lFait::before{color:#5d6b4a}
+.legendeCarte .lNiv::before{color:#a99f86}
+.legendeCarte .lInc::before{color:#cabfa0}
+@media(prefers-reduced-motion:reduce){#carteRegion .marqueur.dispo circle.halo{animation:none;opacity:0}}
+
+/* ---------- Popup de contrat (parchemin épinglé) ---------- */
+#voileContrat{position:fixed;inset:0;background:rgba(10,12,16,.75);display:flex;align-items:center;justify-content:center;z-index:90;padding:20px}
+.avis{position:relative;background:var(--parchemin);color:var(--encre);padding:22px 20px 16px;border-radius:1px;box-shadow:2px 4px 8px rgba(0,0,0,.55);width:min(400px,92vw)}
 .avis::before{content:"";position:absolute;top:-7px;left:50%;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8a8f96,#3d434c);transform:translateX(-50%);box-shadow:0 2px 3px rgba(0,0,0,.5)}
-.avis h3{font-size:21px;line-height:1.15;margin-bottom:4px}
+.avis h3{font-size:23px;line-height:1.15;margin-bottom:4px}
 .avis .meta{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6b5b3e;margin-bottom:8px}
 .avis p{font-style:italic;font-size:15.5px;color:#4a3d28;margin-bottom:12px}
-.avis .pied{display:flex;justify-content:space-between;align-items:center}
-.avis .sceau{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--sang);color:#f3e4d2;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1}
+.avis .pied{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.avis .sceau{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--sang);color:#f3e4d2;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1;flex-shrink:0}
 .avis .sceau small{font-size:9px}
 .avis .gains{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5b4a2d}
 .avis button{background:var(--encre);color:var(--parchemin);padding:7px 14px}
 .avis button:hover{background:#443826}
-.avis.verrouille{filter:grayscale(.9) brightness(.75)}
-.avis.verrouille .cadenas{font-size:13px;color:var(--sang);font-weight:700}
+.avis .cadenas{font-size:13px;color:var(--sang);font-weight:700}
 .avis .compteur{position:absolute;top:8px;right:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a7548}
 .avis.prime{background:linear-gradient(160deg,#e9d5a5,#d9bd82);outline:2px solid var(--sang);outline-offset:-6px}
+.avis .avertCombat{font-size:13px;color:#7d3b32;font-style:italic;margin-bottom:10px}
 
-/* ---------- Animation de résolution de quête ---------- */
+/* ---------- Animation de résolution de quête (sans combat) ---------- */
 #voileMission{position:fixed;inset:0;background:rgba(10,12,16,.82);display:flex;align-items:center;justify-content:center;z-index:100;cursor:pointer}
 .parcheminMission{background:var(--parchemin);color:var(--encre);width:min(430px,92vw);padding:30px 28px;border-radius:2px;box-shadow:0 12px 50px rgba(0,0,0,.7);position:relative;text-align:center;transform:rotate(-.6deg)}
 .parcheminMission h3{font-size:26px;margin-bottom:4px}
@@ -93,8 +120,17 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .recompensesMission .objetGagne{display:block;margin-top:6px;font-weight:500}
 .fermerIndice{margin-top:14px;font-size:12px;color:#8a7548;font-style:italic}
 
+/* ---------- Voile de combat (missions, boss, présent aussi dans l'arène) ---------- */
+#voileCombat{position:fixed;inset:0;background:rgba(10,12,16,.88);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;overflow-y:auto}
+#voileCombat .cadreCombat{width:min(760px,96vw)}
+#voileCombat .entete{font-family:'Grenze Gotisch',serif;font-size:24px;color:var(--ambrefeu);text-align:center;margin-bottom:6px}
+#voileCombat .sousEntete{color:var(--brume);font-style:italic;text-align:center;font-size:14px;margin-bottom:10px}
+#voileCombat .recompensesCombat{background:var(--fer);border:1px solid var(--fer-clair);border-radius:5px;margin-top:12px;padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:14.5px;text-align:center;min-height:20px}
+#voileCombat .recompensesCombat .objetGagne{display:block;margin-top:4px}
+#voileCombat .fermer{display:block;margin:14px auto 0}
+
 /* ---------- Scène de combat animée ---------- */
-.scene{background:radial-gradient(ellipse at 50% 120%,#2a2119 0%,#0e1116 70%);border:1px solid var(--fer-clair);border-radius:6px;padding:26px 20px 18px;margin-top:20px;position:relative;overflow:hidden}
+.scene{background:radial-gradient(ellipse at 50% 120%,#2a2119 0%,#0e1116 70%);border:1px solid var(--fer-clair);border-radius:6px;padding:26px 20px 18px;margin-top:8px;position:relative;overflow:hidden}
 .duellistes{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
 .duelliste{width:44%;text-align:center;position:relative;transition:transform .18s ease-out}
 .duelliste .pancarte{font-family:'Grenze Gotisch',serif;font-size:19px;line-height:1.1;min-height:44px}
@@ -136,30 +172,50 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .carteAttr .rabais{color:var(--reussite);font-size:12px;display:block}
 .noteClasse{color:var(--brume);font-style:italic;margin-bottom:16px}
 
-/* ---------- Équipement ---------- */
-.colonnesEq{display:grid;grid-template-columns:280px 1fr;gap:24px}
-@media(max-width:760px){.colonnesEq{grid-template-columns:1fr}}
-.silhouette{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:18px}
-.silhouette h3{color:var(--ambrefeu);margin-bottom:12px}
-.emplacement{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;border:1px dashed var(--fer-clair);border-radius:4px;margin-bottom:8px;min-height:52px}
-.emplacement .etiquette{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--brume);width:74px;flex-shrink:0}
-.objetNom{font-size:15px;line-height:1.25}
-.objetNom small{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--brume)}
+/* ---------- Équipement : panoplie (paper doll) + sac en grille ---------- */
+.colonnesEq{display:grid;grid-template-columns:330px 1fr;gap:24px}
+@media(max-width:820px){.colonnesEq{grid-template-columns:1fr}}
+.pantin{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:16px}
+.pantin h3{color:var(--ambrefeu);margin-bottom:8px}
+.cadrePantin{position:relative;width:100%;max-width:300px;height:400px;margin:0 auto;background:radial-gradient(ellipse at 50% 40%,#2b3340 0%,#1a2029 75%);border:1px solid var(--fer-clair);border-radius:6px}
+.cadrePantin svg.silhouette{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:88%;opacity:.5}
+.case{width:64px;height:64px;background:#181d25;border:2px dashed var(--fer-clair);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative}
+.case .etiquetteCase{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--brume);white-space:nowrap;pointer-events:none}
+.case.pleine{border-style:solid;cursor:grab;background:#1d232d}
+.case.pleine:hover{filter:brightness(1.25)}
+.case.cibleDepot{border-color:var(--ambrefeu)!important;border-style:solid;box-shadow:0 0 12px rgba(224,149,47,.5);background:#2a2418}
+.case svg.icone{width:40px;height:40px;pointer-events:none}
+.case .nivCoin{position:absolute;top:2px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brume);pointer-events:none}
+.slotPantin{position:absolute}
+.slotArme{left:12px;top:150px}.slotArmure{left:50%;top:140px;transform:translateX(-50%)}
+.slotCasque{left:50%;top:14px;transform:translateX(-50%)}.slotAmulette{left:12px;top:44px}
+.slotAnneau{right:12px;top:150px}.slotBottes{left:50%;top:314px;transform:translateX(-50%)}
 .puissanceResume{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--brume);line-height:1.9}
 .puissanceResume b{color:var(--ambrefeu-vif);font-weight:500}
 .sacs h3{color:var(--ambrefeu);margin-bottom:10px}
-.ligneObjet{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--fer);border:1px solid var(--fer-clair);border-left-width:4px;border-radius:4px;padding:9px 12px;margin-bottom:8px}
-.ligneObjet .actions{display:flex;gap:6px;flex-shrink:0}
-.ligneObjet .actions button{font-size:13px;padding:5px 10px}
-.videSac{color:var(--brume);font-style:italic;padding:12px 0}
+.grilleSac{display:grid;grid-template-columns:repeat(auto-fill,64px);gap:8px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;min-height:88px}
+.grilleSac .case{border-style:solid;border-color:#2b323d}
+.grilleSac .case.vide{border-style:dashed;border-color:#242b35}
+.zoneVente{margin-top:12px;border:2px dashed var(--fer-clair);border-radius:6px;padding:12px 14px;color:var(--brume);font-style:italic;font-size:14.5px;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s}
+.zoneVente.cibleDepot{border-color:var(--ambrefeu);background:#2a2418;color:var(--ambrefeu-vif)}
+.zoneVente svg{width:26px;height:26px;flex-shrink:0}
+.detailObjet{margin-top:12px;background:var(--fer);border:1px solid var(--fer-clair);border-left-width:4px;border-radius:5px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.detailObjet .objetNom{font-size:15.5px;line-height:1.3}
+.detailObjet .objetNom small{display:block;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brume)}
+.detailObjet .actions{display:flex;gap:8px}
+.detailObjet .actions button{font-size:14px;padding:6px 12px}
+.bord-Commun{border-left-color:var(--r-commun)!important} .bord-Inhabituel{border-left-color:var(--r-inhabituel)!important} .bord-Rare{border-left-color:var(--r-rare)!important} .bord-Épique{border-left-color:var(--r-epique)!important} .bord-Légendaire{border-left-color:var(--r-legendaire)!important}
+.rar-Commun{color:var(--r-commun)} .rar-Inhabituel{color:var(--r-inhabituel)} .rar-Rare{color:var(--r-rare)} .rar-Épique{color:var(--r-epique)} .rar-Légendaire{color:var(--r-legendaire)}
+.contour-Commun{border-color:var(--r-commun)!important} .contour-Inhabituel{border-color:var(--r-inhabituel)!important} .contour-Rare{border-color:var(--r-rare)!important} .contour-Épique{border-color:var(--r-epique)!important} .contour-Légendaire{border-color:var(--r-legendaire)!important}
+#infobulle{position:fixed;z-index:300;background:#10141a;border:1px solid var(--fer-clair);border-radius:5px;padding:10px 13px;font-size:14px;pointer-events:none;max-width:260px;box-shadow:0 6px 18px rgba(0,0,0,.6);line-height:1.45}
+#infobulle .titreBulle{font-family:'Grenze Gotisch',serif;font-size:17px}
+#infobulle .mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brume)}
 .forge{margin-top:26px}
 .forge table{width:100%;border-collapse:collapse;font-size:14.5px}
 .forge th{font-family:'Grenze Gotisch',serif;font-weight:500;font-size:16px;color:var(--brume);text-align:left;padding:6px 8px;border-bottom:1px solid var(--fer-clair)}
 .forge td{padding:7px 8px;border-bottom:1px solid #2b323d}
 .forge .mono{font-family:'IBM Plex Mono',monospace;font-size:13.5px}
 .forge button{font-size:13px;padding:4px 10px}
-.rar-Commun{color:var(--r-commun)} .rar-Inhabituel{color:var(--r-inhabituel)} .rar-Rare{color:var(--r-rare)} .rar-Épique{color:var(--r-epique)}
-.bord-Commun{border-left-color:var(--r-commun)!important} .bord-Inhabituel{border-left-color:var(--r-inhabituel)!important} .bord-Rare{border-left-color:var(--r-rare)!important} .bord-Épique{border-left-color:var(--r-epique)!important}
 
 /* ---------- Arène + registre ---------- */
 #panneauArene .intro{color:var(--brume);font-style:italic;margin-bottom:18px;max-width:640px}
@@ -178,7 +234,6 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 @media(prefers-reduced-motion:reduce){
   .toast,.pisteMission div,.sceauResultat.visible,.chiffreDegats{animation:none!important}
   .sceauResultat.visible{opacity:.92;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}
-  .avis{transform:none!important}
   .duelliste,.figurine{transition:none!important}
 }
 @media(max-width:640px){.stats{margin-left:0;flex-wrap:wrap;gap:10px}header h1{font-size:26px}.figurine{width:64px;height:76px;font-size:34px}}
@@ -223,13 +278,21 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   </div>
 
   <nav>
-    <button id="ongletContrats" class="actif" onclick="montrerOnglet('Contrats')">Tableau des primes</button>
+    <button id="ongletContrats" class="actif" onclick="montrerOnglet('Contrats')">Carte des Faubourgs</button>
     <button id="ongletAttributs" onclick="montrerOnglet('Attributs')">Attributs</button>
     <button id="ongletEquipement" onclick="montrerOnglet('Equipement')">Équipement &amp; forge</button>
     <button id="ongletArene" onclick="montrerOnglet('Arene')">Arène du Rempart</button>
   </nav>
 
-  <section id="panneauContrats"><div class="grilleContrats" id="grilleContrats"></div></section>
+  <section id="panneauContrats">
+    <svg id="carteRegion" viewBox="0 0 1000 640" role="img" aria-label="Carte des Faubourgs du Gué"></svg>
+    <div class="legendeCarte">
+      <span class="lDispo">contrat disponible</span>
+      <span class="lFait">accompli (rejouable)</span>
+      <span class="lNiv">réputation insuffisante</span>
+      <span class="lInc">terres inconnues — suivez la trame</span>
+    </div>
+  </section>
 
   <section id="panneauAttributs" class="cache">
     <p class="noteClasse" id="noteClasse"></p>
@@ -238,17 +301,23 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 
   <section id="panneauEquipement" class="cache">
     <div class="colonnesEq">
-      <div class="silhouette">
+      <div class="pantin">
         <h3>Panoplie</h3>
-        <div id="listeEmplacements"></div>
+        <div class="cadrePantin" id="cadrePantin"></div>
         <div class="puissanceResume" id="puissanceResume"></div>
       </div>
       <div class="sacs">
-        <h3>Sac (<span id="tailleSac">0</span>/30)</h3>
-        <div id="listeInventaire"></div>
+        <h3>Sac (<span id="tailleSac">0</span>/<span id="tailleSacMax">30</span>)</h3>
+        <p class="noteClasse" style="margin-bottom:8px">Glissez une pièce sur la silhouette pour l'équiper, sur l'étal pour la vendre. Double-clic : équiper. Clic sur la panoplie : ranger au sac.</p>
+        <div class="grilleSac" id="grilleSac"></div>
+        <div class="zoneVente" id="zoneVente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h16l-1.5 11h-13L4 9z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+          <span>L'étal d'Orin — déposez ici pour vendre (30 % du prix)</span>
+        </div>
+        <div id="detailObjet" class="cache"></div>
         <div class="forge">
           <h3>La forge d'Orin — la Braise</h3>
-          <p class="noteClasse">Les pièces sont forgées à votre niveau actuel. Revente des objets du sac : 30 % du prix.</p>
+          <p class="noteClasse">Les pièces sont forgées à votre niveau actuel.</p>
           <table id="tableForge"></table>
         </div>
       </div>
@@ -281,8 +350,17 @@ const DESCRIPTIONS_ATTRS = {
 };
 const GLYPHES = { "Guerrier":"G", "Rôdeur":"R", "Mage":"M", "Ombre":"O" };
 const NOMS_EMPLACEMENTS = { arme:"Arme", armure:"Armure", casque:"Casque", bottes:"Bottes", amulette:"Amulette", anneau:"Anneau" };
-const NOMS_EFFETS = { atk:"ATK", def:"DÉF", pv:"PV", agilite:"AGI", chance:"CHA", ruse:"RUSE" };
-let perso = null, classeChoisie = null, contratsParId = {};
+const NOMS_EFFETS = { atk:"ATK", def:"DÉF", pv:"PV", force:"FOR", agilite:"AGI", intelligence:"INT", chance:"CHA", ruse:"RUSE" };
+// Icônes de pièces d'équipement (traits simples, couleur = rareté)
+const ICONES = {
+  arme:'<path d="M5 19L16 8m0 0l2.5-2.5M16 8l-1.5-1.5M18 5.5L20 4l-.5 2.5L18 8m-2-2l2 2M5 19l-1.5 1.5M5 19l-2-.5L4 17l2 .5" stroke-linecap="round"/>',
+  armure:'<path d="M12 3l6 2v6c0 5-2.5 8-6 10-3.5-2-6-5-6-10V5l6-2z"/><path d="M12 3v18M8 9h8"/>',
+  casque:'<path d="M5 14v-3a7 7 0 0 1 14 0v3"/><path d="M5 14h4v4H6a1 1 0 0 1-1-1v-3zm14 0h-4v4h3a1 1 0 0 0 1-1v-3z"/><path d="M12 11v7"/>',
+  bottes:'<path d="M8 4h6v8l4 4a2 2 0 0 1-1.4 3.4H9a1 1 0 0 1-1-1V4z"/><path d="M8 15h6"/>',
+  amulette:'<path d="M6 4c0 4 2.5 6 6 7 3.5-1 6-3 6-7"/><circle cx="12" cy="15" r="4"/><path d="M12 13v4m-2-2h4"/>',
+  anneau:'<circle cx="12" cy="14" r="6"/><path d="M9.5 6.5L12 3l2.5 3.5L12 8.5 9.5 6.5z"/>'
+};
+let perso = null, classeChoisie = null, contratsCache = [], contratsParId = {}, CONF = null, selectionSac = -1;
 const mouvementReduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 async function api(chemin, corps) {
@@ -298,10 +376,15 @@ function toast(msg, genre='') {
   setTimeout(() => t.remove(), 5200);
 }
 const fmt = n => Math.round(n).toLocaleString('fr-FR');
+// Petits bonus d'équipement (< 10) : une décimale pour ne pas afficher « +0 ».
+const fmtBonus = n => n < 10 && n % 1 ? n.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) : fmt(n);
 const dodo = ms => new Promise(r => setTimeout(r, mouvementReduit ? 0 : ms));
+const ech = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 function descObjet(o) {
-  const effets = { arme:{atk:1}, armure:{def:.55}, casque:{pv:3}, bottes:{agilite:.12}, amulette:{chance:.08}, anneau:{pv:1,ruse:.3} }[o.emplacement];
-  return Object.entries(effets).map(([e,c]) => '+' + fmt(o.stat*c) + ' ' + NOMS_EFFETS[e]).join(' · ');
+  return Object.entries(CONF.effets[o.emplacement]).map(([e,c]) => '+' + fmtBonus(o.stat*c) + ' ' + NOMS_EFFETS[e]).join(' · ');
+}
+function svgIcone(emplacement, rarete) {
+  return '<svg class="icone rar-' + rarete + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + ICONES[emplacement] + '</svg>';
 }
 
 /* ---------- Entrée ---------- */
@@ -321,6 +404,7 @@ async function entrer() {
   err.textContent = '';
   if (!nom) { err.textContent = 'Le registre exige un nom.'; return; }
   try {
+    if (!CONF) CONF = await api('/api/constantes');
     try { perso = await api('/api/personnage/' + encodeURIComponent(nom)); toast('Bon retour à Aldenfer, ' + nom + '.'); }
     catch {
       if (!classeChoisie) { err.textContent = 'Choisissez une voie pour vous inscrire.'; return; }
@@ -353,7 +437,7 @@ function montrerOnglet(nom) {
     document.getElementById('panneau'+o).classList.toggle('cache', o !== nom);
     document.getElementById('onglet'+o).classList.toggle('actif', o === nom);
   }
-  if (nom === 'Contrats') chargerContrats();
+  if (nom === 'Contrats') chargerCarte();
   if (nom === 'Attributs') afficherAttributs();
   if (nom === 'Equipement') afficherEquipement();
 }
@@ -361,41 +445,122 @@ function annoncerNiveaux(niveaux) {
   (niveaux || []).forEach(n => toast('Niveau ' + n + ' atteint ! Énergie restaurée, votre réputation grandit.', 'bon'));
 }
 
-/* ---------- Contrats ---------- */
-async function chargerContrats() {
-  const contrats = await api('/api/contrats/' + encodeURIComponent(perso.nom));
-  const g = document.getElementById('grilleContrats');
-  g.innerHTML = '';
-  contratsParId = {};
-  for (const c of contrats) {
-    contratsParId[c.id] = c;
-    const div = document.createElement('div');
-    div.className = 'avis' + (c.verrouille ? ' verrouille' : '') + (c.type === 'boss' ? ' prime' : '');
-    div.style.setProperty('--pente', ((c.id * 37) % 5 - 2) * 0.5 + 'deg');
-    const attrs = c.attributs.length ? 'Épreuve : ' + c.attributs.join(' + ') : 'Sans épreuve';
-    div.innerHTML =
+/* ---------- Carte de la région ---------- */
+// Décor fixe des Faubourgs du Gué : parchemin, rivière du Bief, bois, cité d'Aldenfer.
+function decorCarte() {
+  return '' +
+  '<defs>' +
+    '<radialGradient id="gradParch" cx="50%" cy="42%" r="80%">' +
+      '<stop offset="0%" stop-color="#ead9b0"/><stop offset="78%" stop-color="#dcc794"/><stop offset="100%" stop-color="#c3ab74"/>' +
+    '</radialGradient>' +
+  '</defs>' +
+  '<rect width="1000" height="640" fill="url(#gradParch)"/>' +
+  '<rect x="10" y="10" width="980" height="620" fill="none" stroke="#8a7548" stroke-width="2.5"/>' +
+  '<rect x="16" y="16" width="968" height="608" fill="none" stroke="#8a7548" stroke-width="1" opacity=".6"/>' +
+  // La rivière du Bief : descend du moulin (nord) vers le sud-est, alimente le Noirlac.
+  '<path d="M600 30 C 610 90, 540 180, 545 235 C 550 290, 700 320, 830 340 C 930 356, 960 420, 985 470" ' +
+        'fill="none" stroke="#8fa3b0" stroke-width="14" opacity=".55" stroke-linecap="round"/>' +
+  '<ellipse cx="527" cy="242" rx="52" ry="26" fill="#7d94a8" opacity=".55"/>' +
+  '<text x="527" y="222" class="etiquetteLieu" opacity=".9">le Noirlac</text>' +
+  // Bois des Pendus et bois du seigneur : bosquets d'encre.
+  decorBois(255,215,5) + decorBois(330,300,4) + decorBois(415,455,4) + decorBois(490,395,3) +
+  // Collines à l'est.
+  '<path d="M760 480 q28 -26 56 0 M810 508 q28 -26 56 0 M745 522 q24 -22 48 0" fill="none" stroke="#8a7548" stroke-width="2.5" opacity=".7"/>' +
+  // La cité d'Aldenfer, au sud-ouest, d'où part la trame.
+  '<g transform="translate(30,575)" opacity=".9">' +
+    '<path d="M0 40 v-22 h8 v-6 h6 v6 h8 v-8 h7 v8 h8 v-6 h6 v6 h8 v22 z" fill="#6b5b3e"/>' +
+    '<path d="M18 40 v-12 h10 v12" fill="#3a2f1c"/>' +
+  '</g>' +
+  '<text x="55" y="632" class="etiquetteLieu" font-size="14" opacity=".95">Aldenfer — Porte du Gué</text>' +
+  // Cartouche de titre + rose des vents.
+  '<g font-family="Grenze Gotisch,serif">' +
+    '<text x="36" y="58" font-size="30" fill="#4a3d28">Les Faubourgs du Gué</text>' +
+    '<text x="36" y="80" font-size="14" fill="#8a7548" font-style="italic" font-family="Alegreya,serif">région 1 — vingt-cinq contrats de la Guilde des Lames</text>' +
+  '</g>' +
+  '<g transform="translate(940,70)" stroke="#8a7548" fill="#8a7548" opacity=".85">' +
+    '<circle r="4" fill="#8a7548"/><path d="M0 -34 L6 -8 L0 -14 L-6 -8 Z"/><path d="M0 34 L6 8 L0 14 L-6 8 Z" opacity=".5"/>' +
+    '<path d="M-34 0 L-8 -6 L-14 0 L-8 6 Z" opacity=".5"/><path d="M34 0 L8 -6 L14 0 L8 6 Z" opacity=".5"/>' +
+    '<text y="-40" text-anchor="middle" font-size="15" stroke="none" font-family="Grenze Gotisch,serif">N</text>' +
+  '</g>';
+}
+function decorBois(x, y, n) {
+  let s = '<g opacity=".65">';
+  for (let i = 0; i < n; i++) {
+    const dx = x + (i % 3) * 26 - 26, dy = y + Math.floor(i / 3) * 22 + (i % 2) * 8;
+    s += '<path d="M' + dx + ' ' + dy + ' l9 -18 l9 18 z" fill="#5d6b4a" stroke="#4a5539" stroke-width="1"/>' +
+         '<rect x="' + (dx + 7.5) + '" y="' + dy + '" width="3" height="5" fill="#6b5b3e"/>';
+  }
+  return s + '</g>';
+}
+async function chargerCarte() {
+  contratsCache = await api('/api/contrats/' + encodeURIComponent(perso.nom));
+  contratsParId = Object.fromEntries(contratsCache.map(c => [c.id, c]));
+  const svg = document.getElementById('carteRegion');
+  let s = decorCarte();
+  // La route de la trame : pointillés reliant les contrats dans l'ordre. La partie
+  // encore inconnue (au-delà du premier verrou d'histoire) s'efface dans la brume.
+  const premierInconnu = contratsCache.findIndex(c => c.verrouilleHistoire);
+  const connus = premierInconnu === -1 ? contratsCache : contratsCache.slice(0, premierInconnu + 1);
+  const points = liste => liste.map(c => c.x + ',' + c.y).join(' ');
+  if (premierInconnu !== -1 && premierInconnu < contratsCache.length - 1)
+    s += '<polyline points="' + points(contratsCache.slice(premierInconnu)) + '" fill="none" stroke="#8a7548" stroke-width="2.5" stroke-dasharray="2 10" opacity=".25"/>';
+  s += '<polyline points="' + points(connus) + '" fill="none" stroke="#6b5b3e" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round" opacity=".8"/>';
+  for (const c of contratsCache) s += marqueurContrat(c);
+  svg.innerHTML = s;
+  svg.querySelectorAll('.marqueur[data-id]').forEach(m =>
+    m.addEventListener('click', () => ouvrirContrat(parseInt(m.dataset.id))));
+}
+function marqueurContrat(c) {
+  const boss = c.type === 'boss';
+  let etat, contenu = '<text class="numMarqueur" y="5.5">' + c.id + '</text>';
+  if (c.verrouilleHistoire) { etat = 'inconnu'; contenu = '<text class="numMarqueur" y="5.5" opacity=".7">?</text>'; }
+  else if (c.accompli) etat = 'accompli';
+  else if (c.verrouilleNiveau) etat = 'verrouNiv';
+  else etat = 'dispo';
+  const r = boss ? 24 : 16;
+  let s = '<g class="marqueur ' + etat + (boss ? ' boss' : '') + '"' + (etat === 'inconnu' ? '' : ' data-id="' + c.id + '"') +
+          ' transform="translate(' + c.x + ',' + c.y + ')" tabindex="0" role="button" aria-label="' + ech(c.nom) + '">';
+  if (etat === 'dispo') s += '<circle class="halo" r="18" stroke-width="2"/>';
+  s += '<circle class="fond" r="' + r + '" stroke-width="2.5"/>' + contenu;
+  if (c.accompli) s += '<text class="cocheAccompli" y="' + (r + 2) + '" x="' + (r - 3) + '">×' + c.accompli + '</text>';
+  if (etat !== 'inconnu') s += '<text class="etiquetteLieu" y="' + (r + 16) + '">' + ech(c.lieu) + '</text>';
+  if (etat === 'verrouNiv') s += '<text y="-' + (r + 5) + '" text-anchor="middle" font-size="12" fill="#7d745e">niv. ' + c.niveau + ' requis</text>';
+  return s + '</g>';
+}
+function ouvrirContrat(id) {
+  const c = contratsParId[id];
+  if (!c || c.verrouilleHistoire) return;
+  const voile = document.createElement('div');
+  voile.id = 'voileContrat';
+  const attrs = c.attributs.length ? 'Épreuve : ' + c.attributs.join(' + ') : 'Sans épreuve';
+  voile.innerHTML =
+    '<div class="avis' + (c.type === 'boss' ? ' prime' : '') + '">' +
       (c.accompli ? '<span class="compteur">accompli ×' + c.accompli + '</span>' : '') +
-      '<h3>' + c.nom + '</h3>' +
-      '<div class="meta">Niveau ' + c.niveau + ' · ' + attrs + '</div>' +
-      '<p>' + c.texte + '</p>' +
+      '<h3>' + ech(c.nom) + '</h3>' +
+      '<div class="meta">' + ech(c.lieu) + ' · Niveau ' + c.niveau + ' · ' + attrs + '</div>' +
+      '<p>' + ech(c.texte) + '</p>' +
+      (c.adversaire ? '<div class="avertCombat">⚔ Ce contrat se règle par les armes : ' + ech(c.adversaire.nom) + ' (' + c.adversaire.classe + ').</div>' : '') +
       '<div class="pied">' +
         '<span class="sceau">' + c.energie + '<small>énergie</small></span>' +
-        '<span class="gains">' + (c.type==='boss' ? 'butin épique' : '~' + fmt(c.recompenses.or) + ' or · ' + fmt(c.recompenses.xp) + ' XP') + '</span>' +
-        (c.verrouille ? '<span class="cadenas">réputation insuffisante</span>'
-                      : '<button onclick="faireMission(' + c.id + ')">' + (c.type==='boss' ? 'Donner l’assaut' : 'Accepter') + '</button>') +
-      '</div>';
-    g.appendChild(div);
-  }
+        '<span class="gains">' + (c.type === 'boss' ? 'butin épique' : '~' + fmt(c.recompenses.or) + ' or · ' + fmt(c.recompenses.xp) + ' XP') + '</span>' +
+        (c.verrouilleNiveau ? '<span class="cadenas">réputation insuffisante</span>'
+                            : '<button id="btnAccepter">' + (c.type === 'boss' ? 'Donner l’assaut' : 'Accepter') + '</button>') +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(voile);
+  voile.addEventListener('click', e => { if (e.target === voile) voile.remove(); });
+  const btn = voile.querySelector('#btnAccepter');
+  if (btn) btn.onclick = () => { voile.remove(); faireMission(id); };
 }
 
-/* ---------- Animation de résolution de quête ---------- */
-function ouvrirVoileMission(contratNom) {
+/* ---------- Animation de résolution de quête (contrats sans combat) ---------- */
+function ouvrirVoileMission(c) {
   const voile = document.createElement('div');
   voile.id = 'voileMission';
   voile.innerHTML =
     '<div class="parcheminMission">' +
-      '<h3>' + contratNom + '</h3>' +
-      '<div class="lieu">Les Faubourgs du Gué</div>' +
+      '<h3>' + ech(c ? c.nom : 'Contrat') + '</h3>' +
+      '<div class="lieu">' + ech(c && c.lieu ? c.lieu : 'Les Faubourgs du Gué') + '</div>' +
       '<div class="pisteMission"><div></div></div>' +
       '<div class="etatMission">En route…</div>' +
       '<div class="sceauResultat"></div>' +
@@ -425,49 +590,88 @@ function ouvrirVoileMission(contratNom) {
   };
 }
 
+/* ---------- Voile de combat (missions à adversaire et boss) ---------- */
+// Joue la scène animée en plein écran, puis affiche les récompenses. Résout à la fermeture.
+function jouerCombatEnVoile(titre, sousTitre, journal, victoire, lignesRecompense) {
+  return new Promise(resoudre => {
+    const voile = document.createElement('div');
+    voile.id = 'voileCombat';
+    voile.innerHTML =
+      '<div class="cadreCombat">' +
+        '<div class="entete">' + ech(titre) + '</div>' +
+        '<div class="sousEntete">' + ech(sousTitre) + '</div>' +
+        '<div class="porteScene"></div>' +
+        '<div class="recompensesCombat cache"></div>' +
+        '<button class="fermer cache">Reprendre la route</button>' +
+      '</div>';
+    document.body.appendChild(voile);
+    const fermer = () => { voile.remove(); resoudre(); };
+    jouerScene(journal, victoire, voile.querySelector('.porteScene')).then(() => {
+      const rec = voile.querySelector('.recompensesCombat');
+      rec.innerHTML = lignesRecompense;
+      rec.classList.remove('cache');
+      const btn = voile.querySelector('.fermer');
+      btn.classList.remove('cache');
+      btn.onclick = fermer;
+      voile.addEventListener('click', e => { if (e.target === voile) fermer(); });
+    });
+  });
+}
+
+function lignesResultatMission(reponse) {
+  let lignes;
+  if (reponse.reussite) {
+    lignes = '+' + fmt(reponse.gains.or) + ' or · +' + fmt(reponse.gains.xp) + ' XP <small>(' + reponse.chance + ' % de chances)</small>';
+    if (reponse.objet && !reponse.objet.plein) lignes += '<span class="objetGagne rar-' + reponse.objet.rarete + '">Butin : ' + ech(reponse.objet.nom) + ' (' + reponse.objet.rarete + ')</span>';
+    if (reponse.objet && reponse.objet.plein) lignes += '<span class="objetGagne">Un butin vous échappe : sac plein.</span>';
+  } else {
+    lignes = '+' + fmt(reponse.gains.xp) + ' XP de consolation <small>(' + reponse.chance + ' % de chances)</small>';
+    if (reponse.blessure) lignes += '<span class="objetGagne">Vous rentrez blessé.</span>';
+  }
+  return lignes;
+}
+
 async function faireMission(id) {
-  const bouton = event && event.target; if (bouton) bouton.disabled = true;
   try {
-    const promesse = api('/api/mission', { nom: perso.nom, contratId: id });
-    // Les combats de boss basculent directement sur la scène animée
-    const r = await Promise.race([promesse.then(x => ({ ...x, _resolu: true })), dodo(80).then(() => ({ _resolu: false }))]);
-    let reponse = r._resolu ? r : await promesse;
+    const c = contratsParId[id];
+    const reponse = await api('/api/mission', { nom: perso.nom, contratId: id });
+    perso = reponse.personnage;
+    // --- Prime majeure : assaut du boss, en voile plein écran ---
     if (reponse.boss) {
-      perso = reponse.personnage;
-      montrerOnglet('Arene');
       const prep = [];
       if (reponse.preparation.pvReduits) prep.push('PV du boss −' + reponse.preparation.pvReduits + ' %');
       if (reponse.preparation.atkReduite) prep.push('attaque du boss −10 %');
       if (reponse.preparation.initiative) prep.push('vous frappez en premier');
       if (prep.length) toast('Votre préparation paie : ' + prep.join(', ') + '.', 'bon');
-      await jouerScene(reponse.journal, reponse.victoire);
+      let lignes;
       if (reponse.victoire) {
-        toast('Brenn est tombé. +' + fmt(reponse.recompenses.or) + ' or, titre « ' + reponse.recompenses.titre + ' ».', 'bon');
-        if (reponse.recompenses.objet) toast('Butin épique : ' + reponse.recompenses.objet.nom + ' !', 'bon');
-        annoncerNiveaux(reponse.recompenses.niveauxGagnes);
-      } else toast('Le moulin tient bon. Revenez plus préparé — ou mieux équipé.', 'mauvais');
-      rafraichirEntete();
+        lignes = '+' + fmt(reponse.recompenses.or) + ' or · titre « ' + ech(reponse.recompenses.titre) + ' »';
+        if (reponse.recompenses.objet) lignes += '<span class="objetGagne rar-' + reponse.recompenses.objet.rarete + '">Butin épique : ' + ech(reponse.recompenses.objet.nom) + '</span>';
+      } else lignes = 'Le moulin tient bon. Revenez plus préparé — ou mieux équipé.';
+      await jouerCombatEnVoile(c ? c.nom : 'Prime majeure', c ? c.lieu : '', reponse.journal, reponse.victoire, lignes);
+      if (reponse.victoire) annoncerNiveaux(reponse.recompenses.niveauxGagnes);
+      rafraichirEntete(); chargerCarte();
       return;
     }
-    // Mission normale : animation du parchemin
-    const voile = ouvrirVoileMission(contratsParId[id] ? contratsParId[id].nom : 'Contrat');
-    await dodo(1550);
-    perso = reponse.personnage;
-    let lignes;
-    if (reponse.reussite) {
-      lignes = '+' + fmt(reponse.gains.or) + ' or · +' + fmt(reponse.gains.xp) + ' XP <small>(' + reponse.chance + ' % de chances)</small>';
-      if (reponse.objet && !reponse.objet.plein) lignes += '<span class="objetGagne rar-' + reponse.objet.rarete + '">Butin : ' + reponse.objet.nom + ' (' + reponse.objet.rarete + ')</span>';
-      if (reponse.objet && reponse.objet.plein) lignes += '<span class="objetGagne">Un butin vous échappe : sac plein.</span>';
-    } else {
-      lignes = '+' + fmt(reponse.gains.xp) + ' XP de consolation <small>(' + reponse.chance + ' % de chances)</small>';
-      if (reponse.blessure) lignes += '<span class="objetGagne">Vous rentrez blessé.</span>';
+    // --- Contrat à adversaire : le combat EST la résolution ---
+    if (reponse.journal) {
+      await jouerCombatEnVoile(c ? c.nom : 'Contrat', (c ? c.lieu + ' — ' : '') + 'contre ' + reponse.adversaire.nom,
+                               reponse.journal, reponse.reussite, lignesResultatMission(reponse));
+      annoncerNiveaux(reponse.niveauxGagnes);
+      rafraichirEntete(); chargerCarte();
+      return;
     }
-    voile.conclure(reponse.reussite, lignes);
+    // --- Contrat sans combat : animation du parchemin ---
+    const voile = ouvrirVoileMission(c);
+    await dodo(1550);
+    voile.conclure(reponse.reussite, lignesResultatMission(reponse));
     annoncerNiveaux(reponse.niveauxGagnes);
     rafraichirEntete();
-    chargerContrats();
-  } catch(e) { toast(e.message, 'mauvais'); document.querySelectorAll('#voileMission').forEach(v => v.remove()); }
-  finally { if (bouton) bouton.disabled = false; }
+    chargerCarte();
+  } catch(e) {
+    toast(e.message, 'mauvais');
+    document.querySelectorAll('#voileMission,#voileCombat').forEach(v => v.remove());
+  }
 }
 
 /* ---------- Attributs ---------- */
@@ -476,11 +680,11 @@ function afficherAttributs() {
     'En tant que ' + perso.classe + ', la Guilde vous fait 20 % de rabais sur vos deux attributs de voie.';
   const g = document.getElementById('grilleAttributs');
   g.innerHTML = '';
-  const bonusMap = { agilite: perso.bonusEquipement.agilite, chance: perso.bonusEquipement.chance, ruse: perso.bonusEquipement.ruse };
   for (const [a, cout] of Object.entries(perso.couts)) {
     const div = document.createElement('div');
     div.className = 'carteAttr';
-    const bonus = bonusMap[a] ? ' <span class="bonusEq">+' + fmt(bonusMap[a]) + '</span>' : '';
+    const bonusEq = perso.bonusEquipement[a] || 0;
+    const bonus = bonusEq ? ' <span class="bonusEq">+' + fmtBonus(bonusEq) + '</span>' : '';
     div.innerHTML =
       '<span class="nom">' + a.charAt(0).toUpperCase() + a.slice(1) + '<small>' + DESCRIPTIONS_ATTRS[a] + '</small></span>' +
       '<span style="display:flex;align-items:center">' +
@@ -506,37 +710,177 @@ async function soigner() {
   } catch(e) { toast(e.message, 'mauvais'); }
 }
 
-/* ---------- Équipement & forge ---------- */
+/* ---------- Infobulle ---------- */
+function montrerBulle(e, o) {
+  cacherBulle();
+  const b = document.createElement('div');
+  b.id = 'infobulle';
+  b.innerHTML =
+    '<div class="titreBulle rar-' + o.rarete + '">' + ech(o.nom) + '</div>' +
+    '<div class="mono">' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + '</div>' +
+    '<div>' + descObjet(o) + '</div>';
+  document.body.appendChild(b);
+  bougerBulle(e);
+}
+function bougerBulle(e) {
+  const b = document.getElementById('infobulle');
+  if (!b) return;
+  const x = Math.min(e.clientX + 16, innerWidth - b.offsetWidth - 10);
+  const y = Math.min(e.clientY + 14, innerHeight - b.offsetHeight - 10);
+  b.style.left = x + 'px'; b.style.top = y + 'px';
+}
+function cacherBulle() { const b = document.getElementById('infobulle'); if (b) b.remove(); }
+
+/* ---------- Équipement : panoplie + sac en grille ---------- */
+const POSITIONS_SLOTS = { casque:'slotCasque', amulette:'slotAmulette', arme:'slotArme', armure:'slotArmure', anneau:'slotAnneau', bottes:'slotBottes' };
+function silhouetteSVG() {
+  return '<svg class="silhouette" viewBox="0 0 100 200" fill="#39424f" stroke="none">' +
+    '<circle cx="50" cy="24" r="15"/>' +
+    '<path d="M35 44 Q50 38 65 44 L70 78 Q72 96 66 112 L62 112 L60 84 L40 84 L38 112 L34 112 Q28 96 30 78 Z"/>' +
+    '<path d="M33 46 L20 88 L26 92 L38 60 Z M67 46 L80 88 L74 92 L62 60 Z"/>' +
+    '<path d="M40 110 L36 168 L46 168 L49 120 L51 120 L54 168 L64 168 L60 110 Z"/>' +
+    '<path d="M35 168 L33 182 L48 182 L46 168 Z M65 168 L67 182 L52 182 L54 168 Z"/>' +
+  '</svg>';
+}
+function caseObjet(o, attrsSup) {
+  return '<div class="case pleine contour-' + o.rarete + '" ' + attrsSup + ' draggable="true">' +
+    svgIcone(o.emplacement, o.rarete) + '<span class="nivCoin">' + o.niveau + '</span></div>';
+}
 async function afficherEquipement() {
-  const conteneur = document.getElementById('listeEmplacements');
-  conteneur.innerHTML = '';
-  for (const [emp, nomEmp] of Object.entries(NOMS_EMPLACEMENTS)) {
+  selectionSac = -1;
+  const cadre = document.getElementById('cadrePantin');
+  let html = silhouetteSVG();
+  for (const [emp, classePos] of Object.entries(POSITIONS_SLOTS)) {
     const o = perso.equipement[emp];
-    const div = document.createElement('div');
-    div.className = 'emplacement';
-    div.innerHTML = '<span class="etiquette">' + nomEmp + '</span>' +
-      (o ? '<span class="objetNom rar-' + o.rarete + '">' + o.nom + ' <small>niv. ' + o.niveau + ' · ' + descObjet(o) + '</small></span>'
-         : '<span class="objetNom" style="color:var(--brume);font-style:italic">— vide —</span>');
-    conteneur.appendChild(div);
+    html += '<div class="slotPantin ' + classePos + '">' +
+      (o ? caseObjet(o, 'data-slot="' + emp + '"')
+         : '<div class="case" data-slot="' + emp + '"></div>') +
+      '<span class="etiquetteCase" style="position:absolute;bottom:-17px;left:50%;transform:translateX(-50%)">' + NOMS_EMPLACEMENTS[emp] + '</span>' +
+    '</div>';
   }
+  cadre.innerHTML = html;
+
   const b = perso.bonusEquipement;
+  const morceaux = Object.entries(NOMS_EFFETS)
+    .filter(([e]) => b[e]) .map(([e, n]) => '+<b>' + fmtBonus(b[e]) + '</b> ' + n);
   document.getElementById('puissanceResume').innerHTML =
-    'Bonus de panoplie :<br>+<b>' + fmt(b.atk) + '</b> ATK · +<b>' + fmt(b.def) + '</b> DÉF · +<b>' + fmt(b.pv) + '</b> PV<br>' +
-    '+<b>' + fmt(b.agilite) + '</b> AGI · +<b>' + fmt(b.chance) + '</b> CHA · +<b>' + fmt(b.ruse) + '</b> RUSE<br><br>' +
+    'Bonus de panoplie :<br>' + (morceaux.length ? morceaux.join(' · ') : '<i>aucun</i>') + '<br><br>' +
     'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>';
 
-  const sac = document.getElementById('listeInventaire');
+  const grille = document.getElementById('grilleSac');
   document.getElementById('tailleSac').textContent = perso.inventaire.length;
-  sac.innerHTML = perso.inventaire.length ? '' : '<div class="videSac">Le sac est vide. La route y pourvoira.</div>';
-  perso.inventaire.forEach((o, i) => {
-    const div = document.createElement('div');
-    div.className = 'ligneObjet bord-' + o.rarete;
-    div.innerHTML =
-      '<span class="objetNom rar-' + o.rarete + '">' + o.nom + ' <small>' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + ' · ' + descObjet(o) + '</small></span>' +
-      '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button><button onclick="vendre(' + i + ')">Vendre</button></span>';
-    sac.appendChild(div);
-  });
+  document.getElementById('tailleSacMax').textContent = CONF.taille_inventaire;
+  let sacHtml = '';
+  perso.inventaire.forEach((o, i) => { sacHtml += caseObjet(o, 'data-index="' + i + '"'); });
+  for (let i = perso.inventaire.length; i < CONF.taille_inventaire; i++) sacHtml += '<div class="case vide"></div>';
+  grille.innerHTML = sacHtml;
+  document.getElementById('detailObjet').classList.add('cache');
 
+  brancherInteractions();
+  await afficherForge();
+}
+function brancherInteractions() {
+  // Cases du sac : infobulle, sélection, double-clic pour équiper, glisser.
+  document.querySelectorAll('#grilleSac .case.pleine').forEach(el => {
+    const i = parseInt(el.dataset.index);
+    const o = perso.inventaire[i];
+    el.addEventListener('mouseenter', e => montrerBulle(e, o));
+    el.addEventListener('mousemove', bougerBulle);
+    el.addEventListener('mouseleave', cacherBulle);
+    el.addEventListener('click', () => choisirObjetSac(i));
+    el.addEventListener('dblclick', () => equiper(i));
+    el.addEventListener('dragstart', e => {
+      cacherBulle();
+      e.dataTransfer.setData('text/plain', JSON.stringify({ de: 'sac', index: i, emplacement: o.emplacement }));
+      document.querySelectorAll('.case[data-slot="' + o.emplacement + '"], #zoneVente').forEach(z => z.classList.add('cibleDepot'));
+    });
+    el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot').forEach(z => z.classList.remove('cibleDepot')));
+  });
+  // Emplacements de la panoplie : infobulle, clic pour ranger, zone de dépôt.
+  document.querySelectorAll('.cadrePantin .case').forEach(el => {
+    const emp = el.dataset.slot;
+    const o = perso.equipement[emp];
+    if (o) {
+      el.addEventListener('mouseenter', e => montrerBulle(e, o));
+      el.addEventListener('mousemove', bougerBulle);
+      el.addEventListener('mouseleave', cacherBulle);
+      el.addEventListener('click', () => desequiper(emp));
+      el.addEventListener('dragstart', e => {
+        cacherBulle();
+        e.dataTransfer.setData('text/plain', JSON.stringify({ de: 'panoplie', emplacement: emp }));
+        document.getElementById('grilleSac').classList.add('cibleDepot');
+      });
+      el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot').forEach(z => z.classList.remove('cibleDepot')));
+    }
+    el.addEventListener('dragover', e => e.preventDefault());
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      const d = donneesDepot(e);
+      if (d && d.de === 'sac' && d.emplacement === emp) equiper(d.index);
+    });
+  });
+  // Le sac accepte les pièces de la panoplie (ranger).
+  const grille = document.getElementById('grilleSac');
+  grille.addEventListener('dragover', e => e.preventDefault());
+  grille.addEventListener('drop', e => {
+    e.preventDefault();
+    const d = donneesDepot(e);
+    if (d && d.de === 'panoplie') desequiper(d.emplacement);
+  });
+  // L'étal d'Orin accepte les pièces du sac (vendre).
+  const vente = document.getElementById('zoneVente');
+  vente.addEventListener('dragover', e => e.preventDefault());
+  vente.addEventListener('drop', e => {
+    e.preventDefault();
+    const d = donneesDepot(e);
+    if (d && d.de === 'sac') vendre(d.index);
+  });
+}
+function donneesDepot(e) {
+  try { return JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return null; }
+}
+function choisirObjetSac(i) {
+  selectionSac = i;
+  const o = perso.inventaire[i];
+  const d = document.getElementById('detailObjet');
+  const equipe = perso.equipement[o.emplacement];
+  d.className = 'detailObjet bord-' + o.rarete;
+  d.innerHTML =
+    '<span class="objetNom rar-' + o.rarete + '">' + ech(o.nom) +
+      '<small>' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + ' · ' + descObjet(o) +
+      (equipe ? ' — remplacerait ' + ech(equipe.nom) : '') + '</small></span>' +
+    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button><button onclick="vendre(' + i + ')">Vendre</button></span>';
+}
+async function equiper(i) {
+  try {
+    cacherBulle();
+    const r = await api('/api/equiper', { nom: perso.nom, index: i });
+    perso = r.personnage;
+    toast(r.objet.nom + ' équipé' + (r.ancien ? ' — ' + r.ancien.nom + ' retourne au sac.' : '.'), 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function desequiper(emp) {
+  try {
+    cacherBulle();
+    const r = await api('/api/desequiper', { nom: perso.nom, emplacement: emp });
+    perso = r.personnage;
+    toast(r.objet.nom + ' rangé au sac.');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function vendre(i) {
+  try {
+    cacherBulle();
+    const o = perso.inventaire[i];
+    if (o && !confirm('Vendre ' + o.nom + ' à Orin ?')) return;
+    const r = await api('/api/vendre', { nom: perso.nom, index: i });
+    perso = r.personnage;
+    toast(r.objet.nom + ' vendu ' + fmt(r.prix) + ' or.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function afficherForge() {
   const forge = await api('/api/forge/' + encodeURIComponent(perso.nom));
   const table = document.getElementById('tableForge');
   let html = '<tr><th>Pièce</th><th>Commun</th><th>Inhabituel</th><th>Rare</th><th>Épique</th></tr>';
@@ -558,26 +902,9 @@ async function acheterForge(emp, rar) {
     rafraichirEntete(); afficherEquipement();
   } catch(e) { toast(e.message, 'mauvais'); }
 }
-async function equiper(i) {
-  try {
-    const r = await api('/api/equiper', { nom: perso.nom, index: i });
-    perso = r.personnage;
-    toast(r.objet.nom + ' équipé' + (r.ancien ? ' — ' + r.ancien.nom + ' retourne au sac.' : '.'), 'bon');
-    rafraichirEntete(); afficherEquipement();
-  } catch(e) { toast(e.message, 'mauvais'); }
-}
-async function vendre(i) {
-  try {
-    const r = await api('/api/vendre', { nom: perso.nom, index: i });
-    perso = r.personnage;
-    toast(r.objet.nom + ' vendu ' + fmt(r.prix) + ' or.', 'bon');
-    rafraichirEntete(); afficherEquipement();
-  } catch(e) { toast(e.message, 'mauvais'); }
-}
 
 /* ---------- Scène de combat animée ---------- */
-function construireScene(evInit) {
-  const conteneur = document.getElementById('conteneurScene');
+function construireScene(evInit, conteneur) {
   conteneur.innerHTML =
     '<div class="scene">' +
       '<div class="duellistes">' +
@@ -585,23 +912,20 @@ function construireScene(evInit) {
         '<div class="eclairVs">⚔</div>' +
         coteDuelliste('droite', evInit.b) +
       '</div>' +
-      '<div class="bandeauTour" id="bandeauTour"></div>' +
-      '<div class="verdictScene" id="verdictScene"></div>' +
-      '<div class="boutonsScene"><button id="btnPasserScene">Passer l’animation</button></div>' +
+      '<div class="bandeauTour"></div>' +
+      '<div class="verdictScene"></div>' +
+      '<div class="boutonsScene"><button class="btnPasser">Passer l’animation</button></div>' +
     '</div>';
   return conteneur.querySelector('.scene');
 }
 function coteDuelliste(cote, d) {
-  return '<div class="duelliste ' + cote + '" data-nom="' + d.nom.replace(/"/g,'') + '">' +
-    '<div class="pancarte">' + d.nom + '</div>' +
+  return '<div class="duelliste ' + cote + '" data-nom="' + ech(d.nom).replace(/"/g,'') + '">' +
+    '<div class="pancarte">' + ech(d.nom) + '</div>' +
     '<div class="classeSous">' + d.classe + '</div>' +
     '<div class="figurine">' + GLYPHES[d.classe] + '</div>' +
     '<div class="barrePv"><div style="width:100%"></div></div>' +
     '<div class="chiffresPv">' + fmt(d.pvMax) + ' / ' + fmt(d.pvMax) + ' PV</div>' +
   '</div>';
-}
-function elDuelliste(nom) {
-  return Array.from(document.querySelectorAll('.duelliste')).find(d => d.dataset.nom === nom.replace(/"/g,''));
 }
 function flotteChiffre(cible, texte, classe='') {
   const c = document.createElement('div');
@@ -617,13 +941,15 @@ function majPv(el, pv, pvMax) {
   barre.classList.toggle('basse', pct < 32);
   el.querySelector('.chiffresPv').textContent = fmt(pv) + ' / ' + fmt(pvMax) + ' PV';
 }
-async function jouerScene(journal, victoire) {
+async function jouerScene(journal, victoire, conteneur) {
+  conteneur = conteneur || document.getElementById('conteneurScene');
   const evInit = journal.find(e => e.t === 'init');
-  construireScene(evInit);
-  afficherRegistreTexte(journal, victoire);
+  const scene = construireScene(evInit, conteneur);
+  const elDuelliste = nom => Array.from(scene.querySelectorAll('.duelliste')).find(d => d.dataset.nom === nom.replace(/"/g,''));
+  if (conteneur.id === 'conteneurScene') afficherRegistreTexte(journal, victoire);
   let passer = mouvementReduit;
-  document.getElementById('btnPasserScene').onclick = () => { passer = true; };
-  const bandeau = document.getElementById('bandeauTour');
+  scene.querySelector('.btnPasser').onclick = () => { passer = true; };
+  const bandeau = scene.querySelector('.bandeauTour');
   for (const ev of journal) {
     const pause = passer ? 0 : null;
     if (ev.t === 'initiative') { bandeau.textContent = ev.texte; await dodo(pause ?? 700); }
@@ -655,7 +981,7 @@ async function jouerScene(journal, victoire) {
       const elPerdant = perdant && elDuelliste(perdant);
       if (elPerdant && !ev.timeout) elPerdant.classList.add('ko');
       bandeau.textContent = '';
-      const verdict = document.getElementById('verdictScene');
+      const verdict = scene.querySelector('.verdictScene');
       verdict.textContent = ev.vainqueur === perso.nom ? 'Victoire !' : 'Défaite…';
       verdict.className = 'verdictScene ' + (ev.vainqueur === perso.nom ? 'gagne' : 'perd');
       await dodo(pause ?? 500);
@@ -666,7 +992,7 @@ function afficherRegistreTexte(journal, victoire) {
   const reg = document.getElementById('registreCombat');
   reg.classList.remove('cache');
   reg.innerHTML = '';
-  journal.forEach((ev, i) => {
+  journal.forEach(ev => {
     const ligne = document.createElement('div');
     if (ev.t === 'tour') ligne.className = 'tour';
     if (ev.t === 'fin') ligne.className = victoire ? 'verdict' : 'verdict defaiteL';

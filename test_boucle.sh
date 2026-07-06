@@ -26,10 +26,15 @@ def api(chemin, corps=None):
         return json.load(e)
 p = api('/api/personnage/Testeur')
 prep_faites = 0
-while p['niveau'] < 10:
+while True:
     api('/api/dev/energie', {'nom':'Testeur'})
-    contrats = [c for c in api('/api/contrats/Testeur') if not c['verrouille'] and c['type'] != 'boss']
-    cible = max(contrats, key=lambda c: c['niveau'])
+    tous = api('/api/contrats/Testeur')
+    # Prêt pour l'assaut : niveau 10 ET la trame menée jusqu'au boss.
+    if p['niveau'] >= 10 and not next(c for c in tous if c['type'] == 'boss')['verrouille']: break
+    contrats = [c for c in tous if not c['verrouille'] and c['type'] != 'boss']
+    # La trame se suit dans l'ordre : frontière d'abord, sinon le meilleur contrat accompli.
+    frontiere = next((c for c in contrats if not c['accompli']), None)
+    cible = frontiere or max(contrats, key=lambda c: (c['niveau'], c['type'] == 'or', -c['id']))
     # faire les contrats de préparation quand disponibles
     for prep_id in (19, 21, 22):
         prep = next((c for c in contrats if c['id']==prep_id), None)

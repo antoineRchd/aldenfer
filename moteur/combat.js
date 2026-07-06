@@ -19,7 +19,9 @@ class Combattant {
     this.pvMax = Math.round((C.pv_base + C.pv_par_endurance * attrs.endurance + g.pv) * (modifs.pv_mult || 1));
     this.pv = this.pvMax;
     const offensif = { Guerrier: 'force', 'Rôdeur': 'agilite', Mage: 'intelligence', Ombre: 'agilite' }[classe];
-    this.atk = (C.atk_base + C.atk_par_point * attrs[offensif] + g.atk) * (modifs.atk_mult || 1);
+    // L'attribut offensif inclut le bonus d'équipement : chaque classe a un emplacement
+    // qui nourrit son attaque (anneau→force, bottes→agilité, amulette→intelligence).
+    this.atk = (C.atk_base + C.atk_par_point * (attrs[offensif] + (g[offensif] || 0)) + g.atk) * (modifs.atk_mult || 1);
     this.def = C.def_base + C.def_par_endurance * attrs.endurance + g.def;
     this.bouclier = classe === 'Guerrier' ? C.guerrier_bouclier_pct * this.pvMax : 0;
     this.rage = 0;

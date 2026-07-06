@@ -47,9 +47,9 @@ function tirerButin(niveau, rareteForcee = null) {
   return genererObjet(emplacement, niveau, rareteForcee || tirerRarete());
 }
 
-// Somme les effets des objets équipés -> { atk, def, pv, agilite, chance, ruse }
+// Somme les effets des objets équipés -> { atk, def, pv, force, agilite, intelligence, chance, ruse }
 function bonusEquipement(equipement) {
-  const bonus = { atk: 0, def: 0, pv: 0, agilite: 0, chance: 0, ruse: 0 };
+  const bonus = { atk: 0, def: 0, pv: 0, force: 0, agilite: 0, intelligence: 0, endurance: 0, chance: 0, ruse: 0 };
   for (const objet of Object.values(equipement || {})) {
     if (!objet) continue;
     for (const [effet, coeff] of Object.entries(E.effets[objet.emplacement]))

@@ -13,10 +13,15 @@ def api(chemin, corps=None):
     except urllib.error.HTTPError as e: return json.load(e)
 
 p = api('/api/personnage', {'nom':'Heros','classe':'Rôdeur'})
-while p['niveau'] < 10:
+while True:
     api('/api/dev/energie', {'nom':'Heros'})
-    contrats = [c for c in api('/api/contrats/Heros') if not c['verrouille'] and c['type'] != 'boss']
-    cible = max(contrats, key=lambda c: c['niveau'])
+    tous = api('/api/contrats/Heros')
+    # Prêt pour l'assaut : niveau 10 ET la trame menée jusqu'au boss.
+    if p['niveau'] >= 10 and not next(c for c in tous if c['type'] == 'boss')['verrouille']: break
+    contrats = [c for c in tous if not c['verrouille'] and c['type'] != 'boss']
+    # La trame se suit dans l'ordre : frontière d'abord, sinon le meilleur contrat accompli.
+    frontiere = next((c for c in contrats if not c['accompli']), None)
+    cible = frontiere or max(contrats, key=lambda c: (c['niveau'], c['type'] == 'or', -c['id']))
     for pid in (19, 21, 22):
         prep = next((c for c in contrats if c['id']==pid), None)
         if prep and prep['accompli'] < (4 if pid==19 else 1): cible = prep; break

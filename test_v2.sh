@@ -17,11 +17,16 @@ p = api('/api/personnage', {'nom':'TesteurV2','classe':'Guerrier'})
 print('  arme :', p['equipement']['arme']['nom'], '| bonus ATK :', round(p['bonusEquipement']['atk']), '| puissance :', p['puissance'])
 
 print('== Forge : achat, équipement, revente ==')
-# Gagner de quoi acheter d'abord (les 50 or de départ ne suffisent pas — voulu)
-for _ in range(8):
+# Gagner de quoi acheter d'abord (les 50 or de départ ne suffisent pas — voulu).
+# La trame se suit dans l'ordre : on prend toujours le contrat déverrouillé le plus avancé.
+for _ in range(10):
     api('/api/dev/energie', {'nom':'TesteurV2'})
-    r = api('/api/mission', {'nom':'TesteurV2','contratId':2})
+    dispo = [c for c in api('/api/contrats/TesteurV2') if not c['verrouille'] and c['type'] != 'boss']
+    r = api('/api/mission', {'nom':'TesteurV2','contratId':max(dispo, key=lambda c: c['id'])['id']})
     if 'personnage' in r: p = r['personnage']
+    if p['blesse']:
+        r2 = api('/api/soigner', {'nom':'TesteurV2'})
+        if 'personnage' in r2: p = r2['personnage']
 print('  or après quelques contrats :', p['or'])
 forge = api('/api/forge/TesteurV2')
 ligne = next(l for l in forge['catalogue'] if l['emplacement']=='casque' and l['rarete']=='Commun')
@@ -47,10 +52,15 @@ print('  exemple frappe :', {k: frappe[k] for k in ('de','degats','crit','pvRest
 
 print('== Grind avec équipement jusqu’au boss ==')
 p = api('/api/personnage', {'nom':'Heros','classe':'Rôdeur'})
-while p['niveau'] < 10:
+while True:
     api('/api/dev/energie', {'nom':'Heros'})
-    contrats = [c for c in api('/api/contrats/Heros') if not c['verrouille'] and c['type'] != 'boss']
-    cible = max(contrats, key=lambda c: c['niveau'])
+    tous = api('/api/contrats/Heros')
+    # Prêt pour l'assaut : niveau 10 ET la trame menée jusqu'au boss.
+    if p['niveau'] >= 10 and not next(c for c in tous if c['type'] == 'boss')['verrouille']: break
+    contrats = [c for c in tous if not c['verrouille'] and c['type'] != 'boss']
+    # La trame se suit dans l'ordre : frontière d'abord, sinon le meilleur contrat accompli.
+    frontiere = next((c for c in contrats if not c['accompli']), None)
+    cible = frontiere or max(contrats, key=lambda c: (c['niveau'], c['type'] == 'or', -c['id']))
     for pid in (19, 21, 22):
         prep = next((c for c in contrats if c['id']==pid), None)
         if prep and prep['accompli'] < (4 if pid==19 else 1): cible = prep; break
@@ -63,10 +73,11 @@ while p['niveau'] < 10:
     # Stratégie joueur : ÉPARGNER pour la prochaine pièce d'équipement, dépenser le surplus en attributs
     forge = api('/api/forge/Heros')
     prochaine = None
-    for emp, rarete in (('arme','Rare'), ('armure','Commun'), ('casque','Commun'), ('bottes','Commun')):
+    # Stratégie réaliste : viser l'Inhabituel pour l'arme, le Commun pour le reste —
+    # épargner pour du Rare (15× le revenu d'une mission) affame les attributs.
+    for emp, rarete in (('arme','Inhabituel'), ('armure','Commun'), ('casque','Commun'), ('bottes','Commun')):
         equipe = p['equipement'].get(emp)
         if equipe and equipe['niveau'] >= p['niveau'] - 3: continue  # pièce encore fraîche
-        if emp == 'arme' and p['niveau'] < 6: rarete = 'Inhabituel'
         prochaine = (emp, rarete, next(l['prix'] for l in forge['catalogue'] if l['emplacement']==emp and l['rarete']==rarete))
         break
     if prochaine and p['or'] >= prochaine[2]:
