@@ -26,10 +26,21 @@ const orMission = n => Math.round(P.or_mission_base * n ** P.or_mission_exposant
 const prixObjet = (niveau, rarete) => Math.round(orMission(niveau) * E.raretes[rarete].prix);
 const prixRevente = objet => Math.round(prixObjet(objet.niveau, objet.rarete) * E.prix_revente);
 
+// Empreinte de l'objet dans le sac : les grandes lames (Rare et +) prennent
+// une case de plus en hauteur — la puissance a un coût en place.
+function tailleObjet(emplacement, rarete) {
+  const t = { ...E.tailles[emplacement] };
+  const rangs = Object.keys(E.raretes);
+  if (emplacement === 'arme' && rangs.indexOf(rarete) >= rangs.indexOf(E.arme_grande_rarete_min))
+    t.h = E.arme_grande_h;
+  return t;
+}
+
 function genererObjet(emplacement, niveau, rarete) {
   const base = NOMS_BASE[emplacement][Math.floor(Math.random() * NOMS_BASE[emplacement].length)];
   const suffixe = SUFFIXES[rarete][Math.floor(Math.random() * SUFFIXES[rarete].length)];
-  return { emplacement, niveau, rarete, stat: statObjet(niveau, rarete), nom: `${base} ${suffixe}` };
+  return { emplacement, niveau, rarete, stat: statObjet(niveau, rarete),
+           taille: tailleObjet(emplacement, rarete), nom: `${base} ${suffixe}` };
 }
 
 // Tire une rareté selon les poids de butin (les objets vendus, eux, se choisissent).
@@ -66,4 +77,4 @@ function panoplieBot(niveau, rarete = 'Inhabituel') {
   return equipement;
 }
 
-module.exports = { genererObjet, tirerButin, bonusEquipement, panoplieBot, prixObjet, prixRevente, statObjet };
+module.exports = { genererObjet, tirerButin, bonusEquipement, panoplieBot, prixObjet, prixRevente, statObjet, tailleObjet };

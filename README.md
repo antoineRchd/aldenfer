@@ -7,6 +7,12 @@ node serveur.js
 ```
 Puis ouvrir http://localhost:3000 dans un navigateur.
 
+## Nouveautés v4.1 (sac spatial façon Tetris)
+- **Chaque pièce occupe sa place dans le sac** : épée 1×2 debout (grandes lames Rare et + : 1×3), armure 2×2, bottes/amulette 2×1, casque/anneau 1×1 (empreintes dans `constantes.json > equipement.tailles`).
+- **Le sac commence à 6 cases** (grille 8×6 affichée, cases verrouillées hachurées) et grandit : **+1 case par niveau**, et **extensions du sellier** (+4 cases, prix doublant à chaque achat, 8 max) — nouvel évier d'or. Les cases se déverrouillent par colonnes de deux : une épée tient debout dès le départ.
+- **Placement autoritatif côté serveur** : premier emplacement libre au butin/achat, `/api/deplacer` pour réagencer en glisser-déposer, refus propres quand rien ne rentre (forge, butin qui « échappe », déséquipement, fusion — avec annulation et remboursement si la pièce fondue ne tient pas). Migration automatique des anciennes sauvegardes (repositionnement, extensions offertes si besoin).
+- La pression du sac rend la fusion naturelle : le bot de `test_region2.sh` finit en panoplie Rare/Inhabituelle et bat l'Éveilleur 10/10.
+
 ## Nouveautés v4 (région 2, fusion, stats en clair)
 - **Région 2 : Les Hautes Terrasses** (`data/contrats.json`, contrats 26-50, niveaux 10-20). La trame continue : pourquoi Brenn a déserté, les fouilles de la Régence, le Cercle, et l'Éveilleur des Terrasses (boss Mage, préparations 46/47/48, **butin Légendaire garanti**). Vaincre Brenn déverrouille la région (chaîne id−1 naturelle). Carte propre (terrasses, aqueduc, gouffre, nécropole, garnison) avec onglets de région. Boss généralisés côté serveur (`c.boss` + préparations par région). Parcours validé : niveau 20 en ~400 missions, Éveilleur 8/10 avec préparation complète (`test_region2.sh`).
 - **Fusion d'Orin** (`/api/fusionner`) : deux pièces jumelles (même type, même rareté) → une pièce de rareté supérieure au niveau de la meilleure, contre 25 % du prix de forge de la pièce produite. Évier d'or et d'objets ; le Légendaire reste réservé aux primes majeures. UI : glisser une pièce sur sa jumelle, ou bouton « Fusionner » (coût affiché) dans le détail.

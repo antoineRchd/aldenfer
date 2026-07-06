@@ -203,9 +203,18 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .puissanceResume{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--brume);line-height:1.9}
 .puissanceResume b{color:var(--ambrefeu-vif);font-weight:500}
 .sacs h3{color:var(--ambrefeu);margin-bottom:10px}
-.grilleSac{display:grid;grid-template-columns:repeat(auto-fill,64px);gap:8px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;min-height:88px}
-.grilleSac .case{border-style:solid;border-color:#2b323d}
-.grilleSac .case.vide{border-style:dashed;border-color:#242b35}
+/* Sac spatial : grille fixe, cases verrouillées hachurées, objets multi-cases */
+.grilleSac{display:grid;grid-template-columns:repeat(var(--cols,8),50px);grid-auto-rows:50px;gap:6px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;width:max-content;max-width:100%;overflow-x:auto}
+.celluleFond{border:1.5px dashed #242b35;border-radius:5px;background:#161a21}
+.celluleFond.verrou{border:1.5px solid #1a1f27;background:repeating-linear-gradient(45deg,#101319,#101319 6px,#151920 6px,#151920 12px)}
+.celluleFond.cibleDepot{border:2px solid var(--ambrefeu);background:#2a2418}
+.objetSac{position:relative;z-index:2;border:2px solid;border-radius:6px;background:#1d232d;cursor:grab;display:flex;align-items:center;justify-content:center}
+.objetSac:hover{filter:brightness(1.25)}
+.objetSac svg.icone{width:72%;height:72%;max-width:42px;max-height:60px;pointer-events:none}
+.objetSac .nivCoin{position:absolute;top:2px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brume);pointer-events:none}
+.objetSac.cibleFusion{border-color:var(--r-epique)!important;box-shadow:0 0 12px rgba(160,107,199,.55);background:#241d2e}
+.barreSac{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.barreSac button{font-size:14px}
 .zoneVente{margin-top:12px;border:2px dashed var(--fer-clair);border-radius:6px;padding:12px 14px;color:var(--brume);font-style:italic;font-size:14.5px;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s}
 .zoneVente.cibleDepot{border-color:var(--ambrefeu);background:#2a2418;color:var(--ambrefeu-vif)}
 .zoneVente svg{width:26px;height:26px;flex-shrink:0}
@@ -318,9 +327,13 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
         <div class="puissanceResume" id="puissanceResume"></div>
       </div>
       <div class="sacs">
-        <h3>Sac (<span id="tailleSac">0</span>/<span id="tailleSacMax">30</span>)</h3>
-        <p class="noteClasse" style="margin-bottom:8px">Glissez une pièce sur l'équipement porté pour l'équiper, sur une pièce jumelle pour la <b>fondre</b> (rareté supérieure), sur l'étal pour la vendre. Double-clic : équiper. Clic sur une pièce portée : ranger au sac.</p>
+        <h3>Sac — <span id="tailleSac">0</span> case(s) libre(s) sur <span id="tailleSacMax">6</span></h3>
+        <p class="noteClasse" style="margin-bottom:8px">Chaque pièce occupe sa place : une épée tient debout (1×2, les grandes lames 1×3), une armure fait 2×2... Glissez pour réagencer, équiper, <b>fondre</b> (sur une pièce jumelle) ou vendre. Le sac grandit avec vos niveaux — et chez le sellier.</p>
         <div class="grilleSac" id="grilleSac"></div>
+        <div class="barreSac">
+          <button id="btnExtension" onclick="acheterExtension()"></button>
+          <span class="noteClasse" id="noteExtension"></span>
+        </div>
         <div class="zoneVente" id="zoneVente">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h16l-1.5 11h-13L4 9z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
           <span>L'étal d'Orin — déposez ici pour vendre (30 % du prix)</span>
@@ -933,7 +946,8 @@ function montrerBulle(e, o) {
   b.id = 'infobulle';
   b.innerHTML =
     '<div class="titreBulle rar-' + o.rarete + '">' + ech(o.nom) + '</div>' +
-    '<div class="mono">' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + '</div>' +
+    '<div class="mono">' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete +
+      (o.taille ? ' · ' + o.taille.w + '×' + o.taille.h + ' case' + (o.taille.w * o.taille.h > 1 ? 's' : '') : '') + '</div>' +
     '<div>' + descObjet(o) + '</div>';
   document.body.appendChild(b);
   bougerBulle(e);
@@ -983,22 +997,61 @@ async function afficherEquipement() {
     'Bonus de panoplie :<br>' + (morceaux.length ? morceaux.join(' · ') : '<i>aucun</i>') + '<br><br>' +
     'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>';
 
+  // --- Sac spatial : cases de fond (déverrouillées/verrouillées) + objets multi-cases ---
+  const sac = perso.sac;
   const grille = document.getElementById('grilleSac');
-  document.getElementById('tailleSac').textContent = perso.inventaire.length;
-  document.getElementById('tailleSacMax').textContent = CONF.taille_inventaire;
+  grille.style.setProperty('--cols', sac.colonnes);
+  const debloquees = new Set(sac.ordre.map(c => c.x + ',' + c.y));
   let sacHtml = '';
-  perso.inventaire.forEach((o, i) => { sacHtml += caseObjet(o, 'data-index="' + i + '"'); });
-  for (let i = perso.inventaire.length; i < CONF.taille_inventaire; i++) sacHtml += '<div class="case vide"></div>';
+  for (let y = 0; y < sac.lignes; y++)
+    for (let x = 0; x < sac.colonnes; x++) {
+      const deb = debloquees.has(x + ',' + y);
+      sacHtml += '<div class="celluleFond' + (deb ? '' : ' verrou') + '"' + (deb ? ' data-x="' + x + '" data-y="' + y + '"' : '') +
+                 ' style="grid-column:' + (x + 1) + ';grid-row:' + (y + 1) + '"></div>';
+    }
+  perso.inventaire.forEach((o, i) => {
+    sacHtml += '<div class="objetSac contour-' + o.rarete + '" data-index="' + i + '" draggable="true"' +
+      ' style="grid-column:' + (o.pos.x + 1) + ' / span ' + o.taille.w + ';grid-row:' + (o.pos.y + 1) + ' / span ' + o.taille.h + '">' +
+      svgIcone(o.emplacement, o.rarete) + '<span class="nivCoin">' + o.niveau + '</span></div>';
+  });
   grille.innerHTML = sacHtml;
+  const occupees = perso.inventaire.reduce((s, o) => s + o.taille.w * o.taille.h, 0);
+  document.getElementById('tailleSac').textContent = sac.cases - occupees;
+  document.getElementById('tailleSacMax').textContent = sac.cases;
+  const btnExt = document.getElementById('btnExtension');
+  if (sac.extensions >= sac.extensionsMax || sac.cases >= sac.casesMax) {
+    btnExt.disabled = true;
+    btnExt.textContent = 'Sac au maximum';
+  } else {
+    btnExt.disabled = perso.or < sac.prixExtension;
+    btnExt.textContent = 'Agrandir le sac (+4 cases) — ' + fmt(sac.prixExtension) + ' or';
+  }
+  document.getElementById('noteExtension').textContent =
+    'Extensions du sellier : ' + sac.extensions + '/' + sac.extensionsMax + ' · +1 case par niveau gagné.';
   document.getElementById('detailObjet').classList.add('cache');
 
   brancherInteractions();
   await afficherForge();
 }
+async function acheterExtension() {
+  try {
+    const r = await api('/api/sac/extension', { nom: perso.nom });
+    perso = r.personnage;
+    toast('Le sellier coud un soufflet de plus : +4 cases pour ' + fmt(r.prix) + ' or.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function deplacer(index, x, y) {
+  try {
+    const r = await api('/api/deplacer', { nom: perso.nom, index, x, y });
+    perso = r.personnage;
+    afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
 function brancherInteractions() {
-  // Cases du sac : infobulle, sélection, double-clic pour équiper, glisser (équiper,
-  // vendre, ou FUSIONNER en déposant sur une pièce jumelle).
-  document.querySelectorAll('#grilleSac .case.pleine').forEach(el => {
+  // Objets du sac : infobulle, sélection, double-clic pour équiper, glisser (réagencer,
+  // équiper, vendre, ou FUSIONNER en déposant sur une pièce jumelle).
+  document.querySelectorAll('#grilleSac .objetSac').forEach(el => {
     const i = parseInt(el.dataset.index);
     const o = perso.inventaire[i];
     el.addEventListener('mouseenter', e => montrerBulle(e, o));
@@ -1012,7 +1065,7 @@ function brancherInteractions() {
       document.querySelectorAll('.case[data-slot="' + o.emplacement + '"], #zoneVente').forEach(z => z.classList.add('cibleDepot'));
       if (rareteSuivante(o.rarete)) perso.inventaire.forEach((p2, j) => {
         if (j !== i && p2.emplacement === o.emplacement && p2.rarete === o.rarete)
-          document.querySelector('#grilleSac .case[data-index="' + j + '"]').classList.add('cibleFusion');
+          document.querySelector('#grilleSac .objetSac[data-index="' + j + '"]').classList.add('cibleFusion');
       });
     });
     el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot,.cibleFusion').forEach(z => z.classList.remove('cibleDepot', 'cibleFusion')));
@@ -1021,6 +1074,17 @@ function brancherInteractions() {
       e.preventDefault(); e.stopPropagation();
       const d = donneesDepot(e);
       if (d && d.de === 'sac' && d.index !== i) fusionner(d.index, i);
+    });
+  });
+  // Cases libres du sac : cible de réagencement (la case visée devient le coin haut-gauche).
+  document.querySelectorAll('#grilleSac .celluleFond[data-x]').forEach(el => {
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('cibleDepot'); });
+    el.addEventListener('dragleave', () => el.classList.remove('cibleDepot'));
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('cibleDepot');
+      const d = donneesDepot(e);
+      if (d && d.de === 'sac') deplacer(d.index, parseInt(el.dataset.x), parseInt(el.dataset.y));
     });
   });
   // Cases de l'équipement porté : infobulle, clic pour ranger, zone de dépôt.

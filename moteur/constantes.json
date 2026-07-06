@@ -189,7 +189,43 @@
     "prix_revente": 0.3,
     "chance_butin_mission": 0.08,
     "chance_butin_contrat_butin": 0.45,
-    "taille_inventaire": 30,
-    "fusion_part_prix": 0.25
+    "fusion_part_prix": 0.25,
+    "tailles": {
+      "arme": {
+        "w": 1,
+        "h": 2
+      },
+      "armure": {
+        "w": 2,
+        "h": 2
+      },
+      "casque": {
+        "w": 1,
+        "h": 1
+      },
+      "bottes": {
+        "w": 2,
+        "h": 1
+      },
+      "amulette": {
+        "w": 2,
+        "h": 1
+      },
+      "anneau": {
+        "w": 1,
+        "h": 1
+      }
+    },
+    "arme_grande_rarete_min": "Rare",
+    "arme_grande_h": 3,
+    "sac": {
+      "colonnes": 8,
+      "lignes": 6,
+      "cases_base": 6,
+      "cases_par_niveau": 1,
+      "extension_cases": 4,
+      "extension_prix_mult": 4,
+      "extensions_max": 8
+    }
   }
 }

@@ -23,6 +23,20 @@ function charger(nom) {
   // Migration des sauvegardes d'avant l'équipement
   if (!p.equipement) p.equipement = Object.fromEntries(K.equipement.emplacements.map(e => [e, null]));
   if (!p.inventaire) p.inventaire = [];
+  // Migration vers le sac spatial : on redonne une empreinte et une position à chaque
+  // objet ; s'il en déborde, on agrandit gratuitement, puis on vend le surplus.
+  if (p.inventaire.some(o => !o.pos || !o.taille)) {
+    const objets = p.inventaire.map(o => ({ ...o, taille: EQ.tailleObjet(o.emplacement, o.rarete) }));
+    p.inventaire = [];
+    p.extensionsSac = p.extensionsSac || 0;
+    for (const o of objets) {
+      delete o.pos;
+      let pose = placerObjet(p, o);
+      while (!pose && p.extensionsSac < K.equipement.sac.extensions_max) { p.extensionsSac++; pose = placerObjet(p, o); }
+      if (!pose) p.or += EQ.prixRevente(o);
+    }
+  }
+  for (const o of Object.values(p.equipement)) if (o && !o.taille) o.taille = EQ.tailleObjet(o.emplacement, o.rarete);
   return p;
 }
 const sauver = p => fs.writeFileSync(cheminSauvegarde(p.nom), JSON.stringify(p, null, 1));
@@ -71,6 +85,7 @@ function etatPublic(p) {
   return {
     ...p, energieMax: energieMax(p), xpProchainNiveau: xpPourNiveau(p.niveau),
     bonusEquipement: EQ.bonusEquipement(p.equipement),
+    sac: etatSac(p),
     puissance: { atk: Math.round(combattant.atk), def: Math.round(combattant.def), pv: combattant.pvMax },
     couts: Object.fromEntries(K.attributs.liste.map(a => {
       const brut = coutAttribut(p.attributs[a] + 1);
@@ -101,13 +116,64 @@ function journalCombatMission(p, c, reussite) {
   return journal;
 }
 
-// Butin de mission : tirage d'objet, ajouté à l'inventaire si de la place.
+// ---------- Sac spatial (façon Tetris) ----------
+const SAC = K.equipement.sac;
+// Ordre de déverrouillage des cases : par colonnes de deux lignes, bande par bande —
+// une épée (1×2) tient debout dès les six premières cases.
+const ORDRE_CELLULES = (() => {
+  const ordre = [];
+  for (let bande = 0; bande < SAC.lignes; bande += 2)
+    for (let x = 0; x < SAC.colonnes; x++)
+      for (let dy = 0; dy < 2 && bande + dy < SAC.lignes; dy++)
+        ordre.push({ x, y: bande + dy });
+  return ordre;
+})();
+const nbCases = p => Math.min(SAC.colonnes * SAC.lignes,
+  SAC.cases_base + SAC.cases_par_niveau * (p.niveau - 1) + SAC.extension_cases * (p.extensionsSac || 0));
+const prixExtension = p => Math.round(orMission(p.niveau) * SAC.extension_prix_mult * 2 ** (p.extensionsSac || 0));
+const cellulesDebloquees = p => new Set(ORDRE_CELLULES.slice(0, nbCases(p)).map(c => c.x + ',' + c.y));
+function grilleOccupation(p) {
+  const occ = new Map();
+  p.inventaire.forEach((o, i) => {
+    for (let dx = 0; dx < o.taille.w; dx++) for (let dy = 0; dy < o.taille.h; dy++)
+      occ.set((o.pos.x + dx) + ',' + (o.pos.y + dy), i);
+  });
+  return occ;
+}
+function peutPoser(p, taille, x, y, debloquees, occ, ignorer = -1) {
+  for (let dx = 0; dx < taille.w; dx++) for (let dy = 0; dy < taille.h; dy++) {
+    if (x + dx >= SAC.colonnes || y + dy >= SAC.lignes) return false;
+    const cle = (x + dx) + ',' + (y + dy);
+    if (!debloquees.has(cle)) return false;
+    const qui = occ.get(cle);
+    if (qui !== undefined && qui !== ignorer) return false;
+  }
+  return true;
+}
+// Pose l'objet au premier emplacement libre (balaie l'ordre de déverrouillage).
+// Retourne l'objet posé, ou null si le sac ne peut pas l'accueillir.
+function placerObjet(p, objet) {
+  const deb = cellulesDebloquees(p), occ = grilleOccupation(p);
+  for (const c of ORDRE_CELLULES)
+    if (peutPoser(p, objet.taille, c.x, c.y, deb, occ)) {
+      objet.pos = { x: c.x, y: c.y };
+      p.inventaire.push(objet);
+      return objet;
+    }
+  return null;
+}
+function etatSac(p) {
+  return { colonnes: SAC.colonnes, lignes: SAC.lignes, cases: nbCases(p), casesMax: SAC.colonnes * SAC.lignes,
+           extensions: p.extensionsSac || 0, extensionsMax: SAC.extensions_max, prixExtension: prixExtension(p),
+           ordre: ORDRE_CELLULES.slice(0, nbCases(p)) };
+}
+
+// Butin de mission : tirage d'objet, posé dans le sac s'il y a la place.
 function tirerButinMission(p, contrat) {
   const chance = contrat.type === 'butin' ? K.equipement.chance_butin_contrat_butin : K.equipement.chance_butin_mission;
   if (Math.random() > chance) return null;
-  if (p.inventaire.length >= K.equipement.taille_inventaire) return { plein: true };
   const objet = EQ.tirerButin(contrat.niveau);
-  p.inventaire.push(objet);
+  if (!placerObjet(p, objet)) return { plein: true };
   return objet;
 }
 
@@ -117,11 +183,11 @@ function tirerButinMission(p, contrat) {
 app.get('/api/constantes', (_req, res) => res.json({
   effets: K.equipement.effets,
   emplacements: K.equipement.emplacements,
-  taille_inventaire: K.equipement.taille_inventaire,
   raretes: Object.keys(K.equipement.raretes),
   raretes_prix: Object.fromEntries(Object.entries(K.equipement.raretes).map(([r, i]) => [r, i.prix])),
   or_mission: { base: K.progression.or_mission_base, exposant: K.progression.or_mission_exposant },
   fusion_part_prix: K.equipement.fusion_part_prix,
+  tailles: K.equipement.tailles,
   // De quoi écrire noir sur blanc ce que rapporte chaque attribut.
   combat: {
     atk_par_point: K.combat.atk_par_point,
@@ -142,7 +208,7 @@ app.post('/api/personnage', (req, res) => {
     energie: K.energie.max_base, energieMajA: Date.now(),
     blesse: false, contratsAccomplis: {}, victoires: 0, defaites: 0,
     equipement: Object.fromEntries(K.equipement.emplacements.map(e => [e, null])),
-    inventaire: []
+    inventaire: [], extensionsSac: 0
   };
   for (const a of K.classes[classe].attributs_classe) p.attributs[a] += 3;
   // Arme de départ : héritée, comme le veut le pitch.
@@ -201,10 +267,8 @@ app.post('/api/mission', (req, res) => {
       p.contratsAccomplis[c.id] = (p.contratsAccomplis[c.id] || 0) + 1;
       p.titre = recompenses.titre;
       // Butin garanti, comme promis par l'avis de prime (Légendaire pour les régions 2+).
-      if (p.inventaire.length < K.equipement.taille_inventaire) {
-        recompenses.objet = EQ.tirerButin(c.niveau, c.boss.butin);
-        p.inventaire.push(recompenses.objet);
-      }
+      const butinBoss = EQ.tirerButin(c.niveau, c.boss.butin);
+      if (placerObjet(p, butinBoss)) recompenses.objet = butinBoss;
       recompenses.niveauxGagnes = appliquerXp(p, recompenses.xp);
     } else if (Math.random() < K.missions.echec_chance_blessure) { p.blesse = true; p.blessureNiveau = c.niveau; }
     sauver(p);
@@ -296,10 +360,9 @@ app.post('/api/forge/acheter', (req, res) => {
     return res.status(400).json({ erreur: 'Commande invalide.' });
   const prix = EQ.prixObjet(p.niveau, rarete);
   if (p.or < prix) return res.status(400).json({ erreur: `Il faut ${prix} or. La forge ne fait pas crédit non plus.` });
-  if (p.inventaire.length >= K.equipement.taille_inventaire) return res.status(400).json({ erreur: 'Inventaire plein. Vendez ou équipez.' });
-  p.or -= prix;
   const objet = EQ.genererObjet(emplacement, p.niveau, rarete);
-  p.inventaire.push(objet);
+  if (!placerObjet(p, objet)) return res.status(400).json({ erreur: 'Pas la place dans le sac : vendez, équipez, ou agrandissez-le.' });
+  p.or -= prix;
   sauver(p);
   res.json({ objet, prix, personnage: etatPublic(p) });
 });
@@ -309,9 +372,17 @@ app.post('/api/equiper', (req, res) => {
   const i = req.body.index;
   if (!p || p.inventaire[i] === undefined) return res.status(400).json({ erreur: 'Objet introuvable.' });
   const objet = p.inventaire.splice(i, 1)[0];
+  const posOrigine = objet.pos;
   const ancien = p.equipement[objet.emplacement];
   p.equipement[objet.emplacement] = objet;
-  if (ancien) p.inventaire.push(ancien); // l'ancien objet retourne dans le sac
+  delete objet.pos;
+  if (ancien && !placerObjet(p, ancien)) {
+    // pas la place de ranger l'ancien : on annule l'échange
+    p.equipement[objet.emplacement] = ancien;
+    objet.pos = posOrigine;
+    p.inventaire.splice(i, 0, objet);
+    return res.status(400).json({ erreur: `Pas la place de ranger ${ancien.nom} : faites de la place d'abord.` });
+  }
   sauver(p);
   res.json({ objet, ancien, personnage: etatPublic(p) });
 });
@@ -322,9 +393,8 @@ app.post('/api/desequiper', (req, res) => {
   if (!p || !K.equipement.emplacements.includes(emp)) return res.status(400).json({ erreur: 'Emplacement inconnu.' });
   const objet = p.equipement[emp];
   if (!objet) return res.status(400).json({ erreur: 'Emplacement déjà vide.' });
-  if (p.inventaire.length >= K.equipement.taille_inventaire) return res.status(400).json({ erreur: 'Sac plein : impossible d’y ranger la pièce.' });
+  if (!placerObjet(p, objet)) return res.status(400).json({ erreur: 'Pas la place dans le sac pour cette pièce.' });
   p.equipement[emp] = null;
-  p.inventaire.push(objet);
   sauver(p);
   res.json({ objet, personnage: etatPublic(p) });
 });
@@ -349,11 +419,41 @@ app.post('/api/fusionner', (req, res) => {
   if (p.or < cout) return res.status(400).json({ erreur: `La fusion coûte ${cout} or de charbon et de sueur.` });
   p.or -= cout;
   // Retirer les deux pièces (indices décroissants pour ne pas se décaler)
-  for (const i of [indexA, indexB].sort((x, y) => y - x)) p.inventaire.splice(i, 1);
+  const retires = [indexA, indexB].sort((x, y) => y - x).map(i => p.inventaire.splice(i, 1)[0]);
   const objet = EQ.genererObjet(a.emplacement, niveau, rareteSup);
-  p.inventaire.push(objet);
+  if (!placerObjet(p, objet)) {
+    for (const o of retires.reverse()) p.inventaire.push(o); // positions conservées : les cases viennent d'être libérées
+    p.or += cout;
+    return res.status(400).json({ erreur: 'La pièce fondue est plus grande : faites de la place dans le sac.' });
+  }
   sauver(p);
   res.json({ objet, cout, personnage: etatPublic(p) });
+});
+
+// Déplacer une pièce du sac vers une case précise (réagencement façon Tetris).
+app.post('/api/deplacer', (req, res) => {
+  const p = charger(req.body.nom);
+  const { index, x, y } = req.body;
+  const o = p && p.inventaire[index];
+  if (!o || !Number.isInteger(x) || !Number.isInteger(y)) return res.status(400).json({ erreur: 'Déplacement invalide.' });
+  if (!peutPoser(p, o.taille, x, y, cellulesDebloquees(p), grilleOccupation(p), index))
+    return res.status(400).json({ erreur: 'Cette pièce ne tient pas là.' });
+  o.pos = { x, y };
+  sauver(p);
+  res.json({ objet: o, personnage: etatPublic(p) });
+});
+
+// Agrandir le sac : +4 cases contre de l'or, prix doublant à chaque extension.
+app.post('/api/sac/extension', (req, res) => {
+  const p = charger(req.body.nom);
+  if (!p) return res.status(404).json({ erreur: 'Inconnu au registre.' });
+  if ((p.extensionsSac || 0) >= SAC.extensions_max) return res.status(400).json({ erreur: 'Le sellier ne fait pas plus grand.' });
+  const prix = prixExtension(p);
+  if (p.or < prix) return res.status(400).json({ erreur: `L'extension coûte ${prix} or.` });
+  p.or -= prix;
+  p.extensionsSac = (p.extensionsSac || 0) + 1;
+  sauver(p);
+  res.json({ prix, personnage: etatPublic(p) });
 });
 
 app.post('/api/vendre', (req, res) => {
