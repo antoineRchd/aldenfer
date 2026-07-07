@@ -7,6 +7,12 @@ node serveur.js
 ```
 Puis ouvrir http://localhost:3000 dans un navigateur.
 
+## Nouveautés v4.2 (panoplies et statistiques spéciales)
+- **7 statistiques spéciales** (en %, avec plafonds, définies dans `constantes.json > equipement.stats_speciales`) : Vol de vie (soigne sur les dégâts infligés), Épines (renvoie une part des dégâts subis — peut tuer l'attaquant), Pénétration (ignore une part de la défense), Garde (réduit les dégâts subis), Critique, Aubaine (+or des contrats) et Sagesse (+XP). Intégrées au moteur de combat (journal et animations : PV volés, renvois d'épines) et aux récompenses de missions/duels/primes.
+- **Affixes** : à partir du Rare, chaque pièce reçoit une stat spéciale aléatoire (valeurs ×1,6 en Épique, deux affixes ×2 sur le Légendaire). Affichés en vert dans l'infobulle.
+- **12 séries (panoplies)** : les suffixes de noms sont devenus de vraies séries à collectionner — « du Gué », « de la Braise » (Inhabituel), « d'ambrefeu », « du Rempart-aux-Corbeaux », « des Terrasses » (Rare), « du Long Hiver », « de la Chiffonnière », « vaskarien » (Épique), « du Premier Éveil », « de la Garnison sans sommeil », « des Rois-Bâtisseurs » (Légendaire). Porter 2/4/6 pièces d'une même série active des bonus croissants ; le panneau d'équipement affiche les paliers actifs. Chasser la bonne série à la forge (ou par fusion) devient une boucle d'objectif et un évier d'or.
+- **Équilibre re-vérifié** avec affixes en jeu : quatre classes entre 47,5 % et 51,6 % (embuscade de l'Ombre remontée à 22 % — les gardes/épines punissaient son burst). **À reporter au classeur.**
+
 ## Nouveautés v4.1 (sac spatial façon Tetris)
 - **Chaque pièce occupe sa place dans le sac** : épée 1×2 debout (grandes lames Rare et + : 1×3), armure 2×2, bottes/amulette 2×1, casque/anneau 1×1 (empreintes dans `constantes.json > equipement.tailles`).
 - **Le sac commence à 6 cases** (grille 8×6 affichée, cases verrouillées hachurées) et grandit : **+1 case par niveau**, et **extensions du sellier** (+4 cases, prix doublant à chaque achat, 8 max) — nouvel évier d'or. Les cases se déverrouillent par colonnes de deux : une épée tient debout dès le départ.

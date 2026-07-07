@@ -85,6 +85,7 @@ function etatPublic(p) {
   return {
     ...p, energieMax: energieMax(p), xpProchainNiveau: xpPourNiveau(p.niveau),
     bonusEquipement: EQ.bonusEquipement(p.equipement),
+    statsSpeciales: EQ.statsSpeciales(p.equipement),
     sac: etatSac(p),
     puissance: { atk: Math.round(combattant.atk), def: Math.round(combattant.def), pv: combattant.pvMax },
     couts: Object.fromEntries(K.attributs.liste.map(a => {
@@ -188,6 +189,8 @@ app.get('/api/constantes', (_req, res) => res.json({
   or_mission: { base: K.progression.or_mission_base, exposant: K.progression.or_mission_exposant },
   fusion_part_prix: K.equipement.fusion_part_prix,
   tailles: K.equipement.tailles,
+  stats_speciales: K.equipement.stats_speciales,
+  series: K.equipement.series,
   // De quoi écrire noir sur blanc ce que rapporte chaque attribut.
   combat: {
     atk_par_point: K.combat.atk_par_point,
@@ -262,7 +265,9 @@ app.post('/api/mission', (req, res) => {
     const victoire = r.vainqueur === p.nom;
     let recompenses = null;
     if (victoire) {
-      recompenses = { or: orMission(c.niveau) * 5, xp: xpMission(c.niveau) * 5, titre: c.boss.titre };
+      const sp = EQ.statsSpeciales(p.equipement);
+      recompenses = { or: Math.round(orMission(c.niveau) * 5 * (1 + sp.aubaine / 100)),
+                      xp: Math.round(xpMission(c.niveau) * 5 * (1 + sp.sagesse / 100)), titre: c.boss.titre };
       p.or += recompenses.or;
       p.contratsAccomplis[c.id] = (p.contratsAccomplis[c.id] || 0) + 1;
       p.titre = recompenses.titre;
@@ -296,7 +301,9 @@ app.post('/api/mission', (req, res) => {
   let resultat;
   if (reussite) {
     const mult = t => c.type === t ? 1.3 : 1;
-    const gains = { or: Math.round(orMission(c.niveau) * mult('or')), xp: Math.round(xpMission(c.niveau) * mult('xp')) };
+    const sp = EQ.statsSpeciales(p.equipement);
+    const gains = { or: Math.round(orMission(c.niveau) * mult('or') * (1 + sp.aubaine / 100)),
+                    xp: Math.round(xpMission(c.niveau) * mult('xp') * (1 + sp.sagesse / 100)) };
     p.or += gains.or;
     p.contratsAccomplis[c.id] = (p.contratsAccomplis[c.id] || 0) + 1;
     const objet = tirerButinMission(p, c);
@@ -486,7 +493,9 @@ app.post('/api/duel', (req, res) => {
   let gains = null;
   if (victoire) {
     p.victoires++;
-    gains = { or: Math.round(orMission(p.niveau) * 0.6), xp: Math.round(xpMission(p.niveau) * 0.6) };
+    const sp = EQ.statsSpeciales(p.equipement);
+    gains = { or: Math.round(orMission(p.niveau) * 0.6 * (1 + sp.aubaine / 100)),
+              xp: Math.round(xpMission(p.niveau) * 0.6 * (1 + sp.sagesse / 100)) };
     p.or += gains.or;
     gains.niveauxGagnes = appliquerXp(p, gains.xp);
   } else p.defaites++;

@@ -54,7 +54,7 @@
     "ombre_crit_mult": 1.55,
     "ombre_crit_cap": 42,
     "ombre_crit_mult_chance": 2.0,
-    "ombre_embuscade": 0.18,
+    "ombre_embuscade": 0.22,
     "ombre_esquives_auto": 1,
     "ombre_esquive_passive": 8,
     "atk_base": 60
@@ -226,6 +226,232 @@
       "extension_cases": 4,
       "extension_prix_mult": 4,
       "extensions_max": 8
+    },
+    "stats_speciales": {
+      "vol_de_vie": {
+        "nom": "Vol de vie",
+        "desc": "soigne X % des dégâts infligés",
+        "min": 3,
+        "max": 5,
+        "cap": 20
+      },
+      "epines": {
+        "nom": "Épines",
+        "desc": "renvoie X % des dégâts subis",
+        "min": 4,
+        "max": 6,
+        "cap": 25
+      },
+      "penetration": {
+        "nom": "Pénétration",
+        "desc": "ignore X % de la défense adverse",
+        "min": 5,
+        "max": 8,
+        "cap": 30
+      },
+      "garde": {
+        "nom": "Garde",
+        "desc": "réduit les dégâts subis de X %",
+        "min": 3,
+        "max": 5,
+        "cap": 20
+      },
+      "critique": {
+        "nom": "Critique",
+        "desc": "+X % de chance de coup critique",
+        "min": 2,
+        "max": 3,
+        "cap": 12
+      },
+      "aubaine": {
+        "nom": "Aubaine",
+        "desc": "+X % d'or des contrats",
+        "min": 5,
+        "max": 8,
+        "cap": 30
+      },
+      "sagesse": {
+        "nom": "Sagesse",
+        "desc": "+X % d'XP des contrats",
+        "min": 5,
+        "max": 8,
+        "cap": 30
+      }
+    },
+    "affixes": {
+      "Rare": {
+        "nombre": 1,
+        "mult": 1.0
+      },
+      "Épique": {
+        "nombre": 1,
+        "mult": 1.6
+      },
+      "Légendaire": {
+        "nombre": 2,
+        "mult": 2.0
+      }
+    },
+    "series": {
+      "du Gué": {
+        "rarete": "Inhabituel",
+        "bonus": {
+          "2": {
+            "aubaine": 6
+          },
+          "4": {
+            "sagesse": 8
+          },
+          "6": {
+            "garde": 5
+          }
+        }
+      },
+      "des Comptoirs": {
+        "rarete": "Inhabituel",
+        "bonus": {
+          "2": {
+            "aubaine": 8
+          },
+          "4": {
+            "garde": 4
+          },
+          "6": {
+            "sagesse": 8
+          }
+        }
+      },
+      "de la Braise": {
+        "rarete": "Inhabituel",
+        "bonus": {
+          "2": {
+            "epines": 5
+          },
+          "4": {
+            "vol_de_vie": 4
+          },
+          "6": {
+            "penetration": 6
+          }
+        }
+      },
+      "d'ambrefeu": {
+        "rarete": "Rare",
+        "bonus": {
+          "2": {
+            "penetration": 6
+          },
+          "4": {
+            "vol_de_vie": 6
+          },
+          "6": {
+            "critique": 4
+          }
+        }
+      },
+      "du Rempart-aux-Corbeaux": {
+        "rarete": "Rare",
+        "bonus": {
+          "2": {
+            "garde": 6
+          },
+          "4": {
+            "epines": 8
+          },
+          "6": {
+            "vol_de_vie": 6
+          }
+        }
+      },
+      "des Terrasses": {
+        "rarete": "Rare",
+        "bonus": {
+          "2": {
+            "sagesse": 10
+          },
+          "4": {
+            "aubaine": 10
+          },
+          "6": {
+            "critique": 4
+          }
+        }
+      },
+      "du Long Hiver": {
+        "rarete": "Épique",
+        "bonus": {
+          "2": {
+            "garde": 8
+          },
+          "4": {
+            "vol_de_vie": 8
+          },
+          "6": {
+            "epines": 10
+          }
+        }
+      },
+      "de la Chiffonnière": {
+        "rarete": "Épique",
+        "bonus": {
+          "2": {
+            "critique": 5
+          },
+          "4": {
+            "penetration": 10
+          },
+          "6": {
+            "vol_de_vie": 8
+          }
+        }
+      },
+      "vaskarien": {
+        "rarete": "Épique",
+        "bonus": {
+          "2": {
+            "penetration": 10
+          },
+          "4": {
+            "critique": 5
+          },
+          "6": {
+            "garde": 8
+          }
+        }
+      },
+      "du Premier Éveil": {
+        "rarete": "Légendaire",
+        "bonus": {
+          "2": {
+            "penetration": 12
+          },
+          "4": {
+            "critique": 6
+          }
+        }
+      },
+      "de la Garnison sans sommeil": {
+        "rarete": "Légendaire",
+        "bonus": {
+          "2": {
+            "garde": 10
+          },
+          "4": {
+            "epines": 12
+          }
+        }
+      },
+      "des Rois-Bâtisseurs": {
+        "rarete": "Légendaire",
+        "bonus": {
+          "2": {
+            "aubaine": 15
+          },
+          "4": {
+            "vol_de_vie": 10
+          }
+        }
+      }
     }
   }
 }

@@ -4,7 +4,7 @@
 const K = require('./constantes.json');
 const C = K.combat;
 const CLASSES = K.classes;
-const { bonusEquipement } = require('./equipement.js');
+const { bonusEquipement, statsSpeciales } = require('./equipement.js');
 
 const alea = (a, b) => a + Math.random() * (b - a);
 
@@ -27,6 +27,8 @@ class Combattant {
     this.rage = 0;
     this.esquives = classe === 'Ombre' ? C.ombre_esquives_auto : 0;
     this.tourPerso = 0;
+    // Statistiques spéciales (affixes Rare+ et bonus de séries, plafonnées)
+    this.sp = statsSpeciales(equipement);
   }
   precisionContre(cible) {
     if (this.classe === 'Mage') return C.mage_precision_fixe;
@@ -35,15 +37,15 @@ class Combattant {
   }
   chanceCrit() {
     if (this.classe === 'Ombre')
-      return Math.min(C.ombre_crit_cap, (C.crit_base + this.chanceStat * C.crit_par_chance) * C.ombre_crit_mult_chance);
-    return Math.min(C.crit_cap, C.crit_base + this.chanceStat * C.crit_par_chance);
+      return Math.min(C.ombre_crit_cap, (C.crit_base + this.chanceStat * C.crit_par_chance) * C.ombre_crit_mult_chance + this.sp.critique);
+    return Math.min(C.crit_cap, C.crit_base + this.chanceStat * C.crit_par_chance + this.sp.critique);
   }
   attaquer(cible, journal) {
     this.tourPerso++;
     let frappes = 1;
     if (this.classe === 'Rôdeur' && Math.random() < C.rodeur_double_frappe) frappes = 2;
     for (let f = 0; f < frappes; f++) {
-      if (cible.pv <= 0) return;
+      if (cible.pv <= 0 || this.pv <= 0) return; // les épines peuvent tuer l'attaquant en pleine frappe
       if (cible.esquives > 0) {
         cible.esquives--;
         journal.push({ t: 'esquive', de: this.nom, vers: cible.nom, genre: 'ombre',
@@ -61,6 +63,7 @@ class Combattant {
       }
       let def = cible.def;
       if (this.classe === 'Mage') def *= 1 - C.mage_ignore_def;
+      def *= 1 - this.sp.penetration / 100;
       let deg = this.atk ** 2 / (this.atk + def);
       deg *= 1 + alea(-C.degats_alea, C.degats_alea);
       const ev = { t: 'frappe', de: this.nom, vers: cible.nom, crit: false, surcharge: false, embuscade: false, absorbe: 0,
@@ -72,6 +75,7 @@ class Combattant {
         deg *= this.classe === 'Ombre' ? C.ombre_crit_mult : C.crit_mult;
         ev.crit = true;
       }
+      deg *= 1 - cible.sp.garde / 100;
       if (cible.bouclier > 0) {
         const abs = Math.min(cible.bouclier, deg);
         cible.bouclier -= abs; deg -= abs;
@@ -80,14 +84,27 @@ class Combattant {
       deg = Math.round(deg);
       cible.pv -= deg;
       if (cible.classe === 'Guerrier') cible.rage += C.guerrier_rage_par_coup;
+      // Vol de vie de l'attaquant, épines du défenseur (les épines peuvent tuer).
+      if (deg > 0 && this.sp.vol_de_vie > 0) {
+        const soin = Math.round(deg * this.sp.vol_de_vie / 100);
+        if (soin > 0) { this.pv = Math.min(this.pvMax, this.pv + soin); ev.soin = soin; }
+      }
+      if (deg > 0 && cible.sp.epines > 0 && cible.pv > 0) {
+        const renvoi = Math.round(deg * cible.sp.epines / 100);
+        if (renvoi > 0) { this.pv -= renvoi; ev.epines = renvoi; }
+      }
       ev.degats = deg;
       ev.pvRestants = Math.max(0, Math.round(cible.pv));
       ev.pvMax = cible.pvMax;
+      ev.pvDe = Math.max(0, Math.round(this.pv));
+      ev.pvDeMax = this.pvMax;
       const notes = [];
       if (ev.surcharge) notes.push('SURCHARGE ARCANIQUE');
       if (ev.embuscade) notes.push('embuscade');
       if (ev.crit) notes.push('CRITIQUE');
       if (ev.absorbe) notes.push(`${ev.absorbe} absorbés par le bouclier`);
+      if (ev.soin) notes.push(`${ev.soin} PV volés`);
+      if (ev.epines) notes.push(`${ev.epines} renvoyés par les épines`);
       const dbl = ev.double ? ` (${ev.double === 1 ? '1re' : '2e'} frappe)` : '';
       ev.texte = `${this.nom} inflige ${deg} dégâts à ${cible.nom}${dbl}${notes.length ? ' — ' + notes.join(', ') : ''}. [PV ${ev.pvRestants}/${cible.pvMax}]`;
       journal.push(ev);
@@ -108,17 +125,20 @@ function duel(a, b, modifs = {}) {
   else if (b.classe === 'Rôdeur' && a.classe !== 'Rôdeur') [premier, second] = [b, a];
   else [premier, second] = a.agi + alea(0, 30) >= b.agi + alea(0, 30) ? [a, b] : [b, a];
   journal.push({ t: 'initiative', qui: premier.nom, texte: `${premier.nom} a l'initiative.` });
+  // Un combattant peut tomber en attaquant (épines) : on vérifie les deux après chaque assaut.
+  const verdict = () => {
+    if (second.pv <= 0) return { vainqueur: premier.nom, texte: `${second.nom} s'effondre. ${premier.nom} l'emporte.` };
+    if (premier.pv <= 0) return { vainqueur: second.nom, texte: `${premier.nom} s'effondre. ${second.nom} l'emporte.` };
+    return null;
+  };
   for (let t = 1; t <= C.tours_max; t++) {
     journal.push({ t: 'tour', n: t, texte: `— Tour ${t} —` });
     premier.attaquer(second, journal);
-    if (second.pv <= 0) {
-      journal.push({ t: 'fin', vainqueur: premier.nom, texte: `${second.nom} s'effondre. ${premier.nom} l'emporte.` });
-      return { vainqueur: premier.nom, journal };
-    }
-    second.attaquer(premier, journal);
-    if (premier.pv <= 0) {
-      journal.push({ t: 'fin', vainqueur: second.nom, texte: `${premier.nom} s'effondre. ${second.nom} l'emporte.` });
-      return { vainqueur: second.nom, journal };
+    let fin = verdict();
+    if (!fin) { second.attaquer(premier, journal); fin = verdict(); }
+    if (fin) {
+      journal.push({ t: 'fin', vainqueur: fin.vainqueur, texte: fin.texte });
+      return { vainqueur: fin.vainqueur, journal };
     }
   }
   const va = a.pv / a.pvMax >= b.pv / b.pvMax ? a : b;

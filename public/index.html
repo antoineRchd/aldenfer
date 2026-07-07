@@ -163,6 +163,7 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .chiffreDegats.crit{font-size:44px;color:var(--ambrefeu-vif)}
 .chiffreDegats.info{font-size:16px;font-family:'Alegreya',serif;font-style:italic;color:var(--brume)}
 .chiffreDegats.soin{color:#9fd0ff;font-size:18px}
+.chiffreDegats.epines{color:#c78a5b;font-size:19px}
 @keyframes flotte{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-44px)}}
 .eclairVs{align-self:center;font-family:'Grenze Gotisch',serif;font-size:30px;color:var(--sang);padding-top:38px}
 .bandeauTour{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brume);letter-spacing:.2em;text-transform:uppercase;margin:14px 0 4px;min-height:20px}
@@ -226,9 +227,17 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .bord-Commun{border-left-color:var(--r-commun)!important} .bord-Inhabituel{border-left-color:var(--r-inhabituel)!important} .bord-Rare{border-left-color:var(--r-rare)!important} .bord-Épique{border-left-color:var(--r-epique)!important} .bord-Légendaire{border-left-color:var(--r-legendaire)!important}
 .rar-Commun{color:var(--r-commun)} .rar-Inhabituel{color:var(--r-inhabituel)} .rar-Rare{color:var(--r-rare)} .rar-Épique{color:var(--r-epique)} .rar-Légendaire{color:var(--r-legendaire)}
 .contour-Commun{border-color:var(--r-commun)!important} .contour-Inhabituel{border-color:var(--r-inhabituel)!important} .contour-Rare{border-color:var(--r-rare)!important} .contour-Épique{border-color:var(--r-epique)!important} .contour-Légendaire{border-color:var(--r-legendaire)!important}
-#infobulle{position:fixed;z-index:300;background:#10141a;border:1px solid var(--fer-clair);border-radius:5px;padding:10px 13px;font-size:14px;pointer-events:none;max-width:260px;box-shadow:0 6px 18px rgba(0,0,0,.6);line-height:1.45}
+#infobulle{position:fixed;z-index:300;background:#10141a;border:1px solid var(--fer-clair);border-radius:5px;padding:10px 13px;font-size:14px;pointer-events:none;max-width:280px;box-shadow:0 6px 18px rgba(0,0,0,.6);line-height:1.45}
 #infobulle .titreBulle{font-family:'Grenze Gotisch',serif;font-size:17px}
 #infobulle .mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brume)}
+.affixe{color:var(--reussite);font-size:13.5px}
+.affixe small{color:var(--brume);font-style:italic}
+.serieBulle{color:var(--r-epique);font-size:13px;margin-top:3px;font-style:italic}
+.panneauSeries{margin-top:14px;font-size:13.5px;line-height:1.6}
+.panneauSeries .titreSerie{color:var(--r-epique);font-family:'Grenze Gotisch',serif;font-size:16px}
+.panneauSeries .palier{color:var(--brume)}
+.panneauSeries .palier.actif{color:var(--reussite)}
+.statsSpecialesResume{margin-top:10px;font-size:13.5px;color:var(--reussite);line-height:1.6}
 .forge{margin-top:26px}
 .forge table{width:100%;border-collapse:collapse;font-size:14.5px}
 .forge th{font-family:'Grenze Gotisch',serif;font-weight:500;font-size:16px;color:var(--brume);text-align:left;padding:6px 8px;border-bottom:1px solid var(--fer-clair)}
@@ -940,6 +949,18 @@ async function soigner() {
 }
 
 /* ---------- Infobulle ---------- */
+function lignesAffixes(o) {
+  let s = '';
+  for (const a of o.affixes || []) {
+    const meta = CONF.stats_speciales[a.stat];
+    s += '<div class="affixe">◆ ' + meta.nom + ' +' + a.val + ' % <small>(' + meta.desc.replace('X', a.val) + ')</small></div>';
+  }
+  if (o.serie) {
+    const portees = Object.values(perso.equipement).filter(x => x && x.serie === o.serie).length;
+    s += '<div class="serieBulle">Série « ' + ech(o.serie) + ' » — ' + portees + ' portée' + (portees > 1 ? 's' : '') + '</div>';
+  }
+  return s;
+}
 function montrerBulle(e, o) {
   cacherBulle();
   const b = document.createElement('div');
@@ -948,7 +969,8 @@ function montrerBulle(e, o) {
     '<div class="titreBulle rar-' + o.rarete + '">' + ech(o.nom) + '</div>' +
     '<div class="mono">' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete +
       (o.taille ? ' · ' + o.taille.w + '×' + o.taille.h + ' case' + (o.taille.w * o.taille.h > 1 ? 's' : '') : '') + '</div>' +
-    '<div>' + descObjet(o) + '</div>';
+    '<div>' + descObjet(o) + '</div>' +
+    lignesAffixes(o);
   document.body.appendChild(b);
   bougerBulle(e);
 }
@@ -993,9 +1015,25 @@ async function afficherEquipement() {
   const b = perso.bonusEquipement;
   const morceaux = Object.entries(NOMS_EFFETS)
     .filter(([e]) => b[e]) .map(([e, n]) => '+<b>' + fmtBonus(b[e]) + '</b> ' + n);
+  // Stats spéciales totales (affixes + séries, plafonnées) et séries portées.
+  const sp = perso.statsSpeciales;
+  const speciales = Object.entries(CONF.stats_speciales)
+    .filter(([s]) => sp[s] > 0)
+    .map(([s, meta]) => meta.nom + ' <b>' + sp[s] + ' %</b>' + (sp[s] >= meta.cap ? ' (plafond)' : ''));
+  let seriesHtml = '';
+  for (const se of sp._series || []) {
+    const paliers = Object.entries(CONF.series[se.serie].bonus).map(([palier, bonus]) => {
+      const actif = se.pieces >= parseInt(palier);
+      const detail = Object.entries(bonus).map(([st, v]) => CONF.stats_speciales[st].nom + ' +' + v + ' %').join(', ');
+      return '<span class="palier' + (actif ? ' actif' : '') + '">' + palier + 'p : ' + detail + (actif ? ' ✓' : '') + '</span>';
+    }).join('<br>');
+    seriesHtml += '<div><span class="titreSerie">Série « ' + ech(se.serie) + ' » — ' + se.pieces + '/6</span><br>' + paliers + '</div>';
+  }
   document.getElementById('puissanceResume').innerHTML =
     'Bonus de panoplie :<br>' + (morceaux.length ? morceaux.join(' · ') : '<i>aucun</i>') + '<br><br>' +
-    'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>';
+    'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>' +
+    (speciales.length ? '<div class="statsSpecialesResume">Stats spéciales :<br>' + speciales.join(' · ') + '</div>' : '') +
+    (seriesHtml ? '<div class="panneauSeries">' + seriesHtml + '</div>' : '');
 
   // --- Sac spatial : cases de fond (déverrouillées/verrouillées) + objets multi-cases ---
   const sac = perso.sac;
@@ -1278,7 +1316,10 @@ async function jouerScene(journal, victoire, conteneur) {
       if (ev.surcharge) flotteChiffre(de, 'SURCHARGE', 'info');
       if (ev.embuscade) flotteChiffre(de, 'embuscade', 'info');
       if (ev.absorbe) flotteChiffre(vers, ev.absorbe + ' absorbés', 'soin');
+      if (ev.soin) flotteChiffre(de, '+' + fmt(ev.soin) + ' volés', 'soin');
+      if (ev.epines) flotteChiffre(de, '−' + fmt(ev.epines) + ' épines', 'epines');
       majPv(vers, ev.pvRestants, ev.pvMax);
+      if (ev.pvDe !== undefined) majPv(de, ev.pvDe, ev.pvDeMax);
       await dodo(pause ?? (ev.crit ? 620 : 460));
       vers.classList.remove('touche', 'critTouche');
     }
