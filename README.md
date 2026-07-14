@@ -7,6 +7,22 @@ node serveur.js
 ```
 Puis ouvrir http://localhost:3000 dans un navigateur.
 
+## Nouveautés v5 (arène classée ELO + reforgeage)
+- **Arène classée** (document de design §7.2) : ELO K=32 départ 1000, **5 assauts par jour** (reset quotidien paresseux), appariement **ELO ± 100 ET niveau ± 8** (élargi ×2 puis ×4 s'il n'y a personne). Les défenseurs sont les **vrais personnages du registre** (snapshots PvP asynchrones — leur ELO bouge aussi) ; un « champion de l'arène » généré fait le sparring sinon. **Ligues** Bronze → Grand Maître (seuils dans `constantes.json > arene`), **classement top 10 du serveur** dans l'onglet Arène. Le duel d'entraînement (énergie, sans ELO) reste disponible.
+- **Reforgeage** (`/api/reforger`) : relancer les affixes d'une pièce Rare+ contre 15 % de son prix de forge — la chasse au bon affixe devient un évier d'or répétable. Bouton avec coût dans le détail d'objet.
+
+## Nouveautés v4.2 (panoplies et statistiques spéciales)
+- **7 statistiques spéciales** (en %, avec plafonds, définies dans `constantes.json > equipement.stats_speciales`) : Vol de vie (soigne sur les dégâts infligés), Épines (renvoie une part des dégâts subis — peut tuer l'attaquant), Pénétration (ignore une part de la défense), Garde (réduit les dégâts subis), Critique, Aubaine (+or des contrats) et Sagesse (+XP). Intégrées au moteur de combat (journal et animations : PV volés, renvois d'épines) et aux récompenses de missions/duels/primes.
+- **Affixes** : à partir du Rare, chaque pièce reçoit une stat spéciale aléatoire (valeurs ×1,6 en Épique, deux affixes ×2 sur le Légendaire). Affichés en vert dans l'infobulle.
+- **12 séries (panoplies)** : les suffixes de noms sont devenus de vraies séries à collectionner — « du Gué », « de la Braise » (Inhabituel), « d'ambrefeu », « du Rempart-aux-Corbeaux », « des Terrasses » (Rare), « du Long Hiver », « de la Chiffonnière », « vaskarien » (Épique), « du Premier Éveil », « de la Garnison sans sommeil », « des Rois-Bâtisseurs » (Légendaire). Porter 2/4/6 pièces d'une même série active des bonus croissants ; le panneau d'équipement affiche les paliers actifs. Chasser la bonne série à la forge (ou par fusion) devient une boucle d'objectif et un évier d'or.
+- **Équilibre re-vérifié** avec affixes en jeu : quatre classes entre 47,5 % et 51,6 % (embuscade de l'Ombre remontée à 22 % — les gardes/épines punissaient son burst). **À reporter au classeur.**
+
+## Nouveautés v4.1 (sac spatial façon Tetris)
+- **Chaque pièce occupe sa place dans le sac** : épée 1×2 debout (grandes lames Rare et + : 1×3), armure 2×2, bottes/amulette 2×1, casque/anneau 1×1 (empreintes dans `constantes.json > equipement.tailles`).
+- **Le sac commence à 6 cases** (grille 8×6 affichée, cases verrouillées hachurées) et grandit : **+1 case par niveau**, et **extensions du sellier** (+4 cases, prix doublant à chaque achat, 8 max) — nouvel évier d'or. Les cases se déverrouillent par colonnes de deux : une épée tient debout dès le départ.
+- **Placement autoritatif côté serveur** : premier emplacement libre au butin/achat, `/api/deplacer` pour réagencer en glisser-déposer, refus propres quand rien ne rentre (forge, butin qui « échappe », déséquipement, fusion — avec annulation et remboursement si la pièce fondue ne tient pas). Migration automatique des anciennes sauvegardes (repositionnement, extensions offertes si besoin).
+- La pression du sac rend la fusion naturelle : le bot de `test_region2.sh` finit en panoplie Rare/Inhabituelle et bat l'Éveilleur 10/10.
+
 ## Nouveautés v4 (région 2, fusion, stats en clair)
 - **Région 2 : Les Hautes Terrasses** (`data/contrats.json`, contrats 26-50, niveaux 10-20). La trame continue : pourquoi Brenn a déserté, les fouilles de la Régence, le Cercle, et l'Éveilleur des Terrasses (boss Mage, préparations 46/47/48, **butin Légendaire garanti**). Vaincre Brenn déverrouille la région (chaîne id−1 naturelle). Carte propre (terrasses, aqueduc, gouffre, nécropole, garnison) avec onglets de région. Boss généralisés côté serveur (`c.boss` + préparations par région). Parcours validé : niveau 20 en ~400 missions, Éveilleur 8/10 avec préparation complète (`test_region2.sh`).
 - **Fusion d'Orin** (`/api/fusionner`) : deux pièces jumelles (même type, même rareté) → une pièce de rareté supérieure au niveau de la meilleure, contre 25 % du prix de forge de la pièce produite. Évier d'or et d'objets ; le Légendaire reste réservé aux primes majeures. UI : glisser une pièce sur sa jumelle, ou bouton « Fusionner » (coût affiché) dans le détail.

@@ -26,10 +26,67 @@ const orMission = n => Math.round(P.or_mission_base * n ** P.or_mission_exposant
 const prixObjet = (niveau, rarete) => Math.round(orMission(niveau) * E.raretes[rarete].prix);
 const prixRevente = objet => Math.round(prixObjet(objet.niveau, objet.rarete) * E.prix_revente);
 
+// Empreinte de l'objet dans le sac : les grandes lames (Rare et +) prennent
+// une case de plus en hauteur — la puissance a un coût en place.
+function tailleObjet(emplacement, rarete) {
+  const t = { ...E.tailles[emplacement] };
+  const rangs = Object.keys(E.raretes);
+  if (emplacement === 'arme' && rangs.indexOf(rarete) >= rangs.indexOf(E.arme_grande_rarete_min))
+    t.h = E.arme_grande_h;
+  return t;
+}
+
+// Affixes : à partir du Rare, chaque pièce reçoit des statistiques spéciales
+// aléatoires (1 affixe en Rare, plus fort en Épique, 2 sur le Légendaire).
+function tirerAffixes(rarete) {
+  const regle = E.affixes[rarete];
+  if (!regle) return [];
+  const stats = Object.keys(E.stats_speciales);
+  const affixes = [];
+  while (affixes.length < regle.nombre) {
+    const stat = stats[Math.floor(Math.random() * stats.length)];
+    if (affixes.some(a => a.stat === stat)) continue;
+    const s = E.stats_speciales[stat];
+    affixes.push({ stat, val: Math.round((s.min + Math.random() * (s.max - s.min)) * regle.mult) });
+  }
+  return affixes;
+}
+
 function genererObjet(emplacement, niveau, rarete) {
   const base = NOMS_BASE[emplacement][Math.floor(Math.random() * NOMS_BASE[emplacement].length)];
   const suffixe = SUFFIXES[rarete][Math.floor(Math.random() * SUFFIXES[rarete].length)];
-  return { emplacement, niveau, rarete, stat: statObjet(niveau, rarete), nom: `${base} ${suffixe}` };
+  const objet = { emplacement, niveau, rarete, stat: statObjet(niveau, rarete),
+                  taille: tailleObjet(emplacement, rarete), nom: `${base} ${suffixe}` };
+  if (E.series[suffixe]) objet.serie = suffixe;   // le suffixe EST la série (panoplie)
+  const affixes = tirerAffixes(rarete);
+  if (affixes.length) objet.affixes = affixes;
+  return objet;
+}
+
+// Statistiques spéciales totales d'une panoplie portée : affixes des pièces
+// + bonus de séries par paliers (2/4/6 pièces), le tout plafonné.
+function statsSpeciales(equipement) {
+  const sp = Object.fromEntries(Object.keys(E.stats_speciales).map(s => [s, 0]));
+  const compteSeries = {};
+  for (const objet of Object.values(equipement || {})) {
+    if (!objet) continue;
+    for (const a of objet.affixes || []) sp[a.stat] += a.val;
+    if (objet.serie) compteSeries[objet.serie] = (compteSeries[objet.serie] || 0) + 1;
+  }
+  const seriesActives = [];
+  for (const [serie, n] of Object.entries(compteSeries)) {
+    const paliers = E.series[serie].bonus;
+    const actifs = [];
+    for (const [palier, bonus] of Object.entries(paliers))
+      if (n >= parseInt(palier)) {
+        for (const [stat, val] of Object.entries(bonus)) sp[stat] += val;
+        actifs.push(parseInt(palier));
+      }
+    seriesActives.push({ serie, pieces: n, paliersActifs: actifs });
+  }
+  for (const s of Object.keys(sp)) sp[s] = Math.min(sp[s], E.stats_speciales[s].cap);
+  sp._series = seriesActives;
+  return sp;
 }
 
 // Tire une rareté selon les poids de butin (les objets vendus, eux, se choisissent).
@@ -66,4 +123,4 @@ function panoplieBot(niveau, rarete = 'Inhabituel') {
   return equipement;
 }
 
-module.exports = { genererObjet, tirerButin, bonusEquipement, panoplieBot, prixObjet, prixRevente, statObjet };
+module.exports = { genererObjet, tirerButin, bonusEquipement, panoplieBot, prixObjet, prixRevente, statObjet, tailleObjet, statsSpeciales, tirerAffixes };

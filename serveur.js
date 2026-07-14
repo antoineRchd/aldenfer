@@ -23,6 +23,24 @@ function charger(nom) {
   // Migration des sauvegardes d'avant l'équipement
   if (!p.equipement) p.equipement = Object.fromEntries(K.equipement.emplacements.map(e => [e, null]));
   if (!p.inventaire) p.inventaire = [];
+  // Migration vers le sac spatial : on redonne une empreinte et une position à chaque
+  // objet ; s'il en déborde, on agrandit gratuitement, puis on vend le surplus.
+  if (p.inventaire.some(o => !o.pos || !o.taille)) {
+    const objets = p.inventaire.map(o => ({ ...o, taille: EQ.tailleObjet(o.emplacement, o.rarete) }));
+    p.inventaire = [];
+    p.extensionsSac = p.extensionsSac || 0;
+    for (const o of objets) {
+      delete o.pos;
+      let pose = placerObjet(p, o);
+      while (!pose && p.extensionsSac < K.equipement.sac.extensions_max) { p.extensionsSac++; pose = placerObjet(p, o); }
+      if (!pose) p.or += EQ.prixRevente(o);
+    }
+  }
+  for (const o of Object.values(p.equipement)) if (o && !o.taille) o.taille = EQ.tailleObjet(o.emplacement, o.rarete);
+  // Migration arène : ELO de départ et attaques quotidiennes.
+  if (p.elo === undefined) p.elo = K.arene.elo_depart;
+  const jour = new Date().toISOString().slice(0, 10);
+  if (!p.arene || p.arene.jour !== jour) p.arene = { jour, restantes: K.arene.attaques_par_jour };
   return p;
 }
 const sauver = p => fs.writeFileSync(cheminSauvegarde(p.nom), JSON.stringify(p, null, 1));
@@ -71,6 +89,8 @@ function etatPublic(p) {
   return {
     ...p, energieMax: energieMax(p), xpProchainNiveau: xpPourNiveau(p.niveau),
     bonusEquipement: EQ.bonusEquipement(p.equipement),
+    statsSpeciales: EQ.statsSpeciales(p.equipement),
+    sac: etatSac(p),
     puissance: { atk: Math.round(combattant.atk), def: Math.round(combattant.def), pv: combattant.pvMax },
     couts: Object.fromEntries(K.attributs.liste.map(a => {
       const brut = coutAttribut(p.attributs[a] + 1);
@@ -101,13 +121,64 @@ function journalCombatMission(p, c, reussite) {
   return journal;
 }
 
-// Butin de mission : tirage d'objet, ajouté à l'inventaire si de la place.
+// ---------- Sac spatial (façon Tetris) ----------
+const SAC = K.equipement.sac;
+// Ordre de déverrouillage des cases : par colonnes de deux lignes, bande par bande —
+// une épée (1×2) tient debout dès les six premières cases.
+const ORDRE_CELLULES = (() => {
+  const ordre = [];
+  for (let bande = 0; bande < SAC.lignes; bande += 2)
+    for (let x = 0; x < SAC.colonnes; x++)
+      for (let dy = 0; dy < 2 && bande + dy < SAC.lignes; dy++)
+        ordre.push({ x, y: bande + dy });
+  return ordre;
+})();
+const nbCases = p => Math.min(SAC.colonnes * SAC.lignes,
+  SAC.cases_base + SAC.cases_par_niveau * (p.niveau - 1) + SAC.extension_cases * (p.extensionsSac || 0));
+const prixExtension = p => Math.round(orMission(p.niveau) * SAC.extension_prix_mult * 2 ** (p.extensionsSac || 0));
+const cellulesDebloquees = p => new Set(ORDRE_CELLULES.slice(0, nbCases(p)).map(c => c.x + ',' + c.y));
+function grilleOccupation(p) {
+  const occ = new Map();
+  p.inventaire.forEach((o, i) => {
+    for (let dx = 0; dx < o.taille.w; dx++) for (let dy = 0; dy < o.taille.h; dy++)
+      occ.set((o.pos.x + dx) + ',' + (o.pos.y + dy), i);
+  });
+  return occ;
+}
+function peutPoser(p, taille, x, y, debloquees, occ, ignorer = -1) {
+  for (let dx = 0; dx < taille.w; dx++) for (let dy = 0; dy < taille.h; dy++) {
+    if (x + dx >= SAC.colonnes || y + dy >= SAC.lignes) return false;
+    const cle = (x + dx) + ',' + (y + dy);
+    if (!debloquees.has(cle)) return false;
+    const qui = occ.get(cle);
+    if (qui !== undefined && qui !== ignorer) return false;
+  }
+  return true;
+}
+// Pose l'objet au premier emplacement libre (balaie l'ordre de déverrouillage).
+// Retourne l'objet posé, ou null si le sac ne peut pas l'accueillir.
+function placerObjet(p, objet) {
+  const deb = cellulesDebloquees(p), occ = grilleOccupation(p);
+  for (const c of ORDRE_CELLULES)
+    if (peutPoser(p, objet.taille, c.x, c.y, deb, occ)) {
+      objet.pos = { x: c.x, y: c.y };
+      p.inventaire.push(objet);
+      return objet;
+    }
+  return null;
+}
+function etatSac(p) {
+  return { colonnes: SAC.colonnes, lignes: SAC.lignes, cases: nbCases(p), casesMax: SAC.colonnes * SAC.lignes,
+           extensions: p.extensionsSac || 0, extensionsMax: SAC.extensions_max, prixExtension: prixExtension(p),
+           ordre: ORDRE_CELLULES.slice(0, nbCases(p)) };
+}
+
+// Butin de mission : tirage d'objet, posé dans le sac s'il y a la place.
 function tirerButinMission(p, contrat) {
   const chance = contrat.type === 'butin' ? K.equipement.chance_butin_contrat_butin : K.equipement.chance_butin_mission;
   if (Math.random() > chance) return null;
-  if (p.inventaire.length >= K.equipement.taille_inventaire) return { plein: true };
   const objet = EQ.tirerButin(contrat.niveau);
-  p.inventaire.push(objet);
+  if (!placerObjet(p, objet)) return { plein: true };
   return objet;
 }
 
@@ -117,11 +188,15 @@ function tirerButinMission(p, contrat) {
 app.get('/api/constantes', (_req, res) => res.json({
   effets: K.equipement.effets,
   emplacements: K.equipement.emplacements,
-  taille_inventaire: K.equipement.taille_inventaire,
   raretes: Object.keys(K.equipement.raretes),
   raretes_prix: Object.fromEntries(Object.entries(K.equipement.raretes).map(([r, i]) => [r, i.prix])),
   or_mission: { base: K.progression.or_mission_base, exposant: K.progression.or_mission_exposant },
   fusion_part_prix: K.equipement.fusion_part_prix,
+  reforge_part_prix: K.equipement.reforge_part_prix,
+  affixes: K.equipement.affixes,
+  tailles: K.equipement.tailles,
+  stats_speciales: K.equipement.stats_speciales,
+  series: K.equipement.series,
   // De quoi écrire noir sur blanc ce que rapporte chaque attribut.
   combat: {
     atk_par_point: K.combat.atk_par_point,
@@ -142,7 +217,7 @@ app.post('/api/personnage', (req, res) => {
     energie: K.energie.max_base, energieMajA: Date.now(),
     blesse: false, contratsAccomplis: {}, victoires: 0, defaites: 0,
     equipement: Object.fromEntries(K.equipement.emplacements.map(e => [e, null])),
-    inventaire: []
+    inventaire: [], extensionsSac: 0
   };
   for (const a of K.classes[classe].attributs_classe) p.attributs[a] += 3;
   // Arme de départ : héritée, comme le veut le pitch.
@@ -196,15 +271,15 @@ app.post('/api/mission', (req, res) => {
     const victoire = r.vainqueur === p.nom;
     let recompenses = null;
     if (victoire) {
-      recompenses = { or: orMission(c.niveau) * 5, xp: xpMission(c.niveau) * 5, titre: c.boss.titre };
+      const sp = EQ.statsSpeciales(p.equipement);
+      recompenses = { or: Math.round(orMission(c.niveau) * 5 * (1 + sp.aubaine / 100)),
+                      xp: Math.round(xpMission(c.niveau) * 5 * (1 + sp.sagesse / 100)), titre: c.boss.titre };
       p.or += recompenses.or;
       p.contratsAccomplis[c.id] = (p.contratsAccomplis[c.id] || 0) + 1;
       p.titre = recompenses.titre;
       // Butin garanti, comme promis par l'avis de prime (Légendaire pour les régions 2+).
-      if (p.inventaire.length < K.equipement.taille_inventaire) {
-        recompenses.objet = EQ.tirerButin(c.niveau, c.boss.butin);
-        p.inventaire.push(recompenses.objet);
-      }
+      const butinBoss = EQ.tirerButin(c.niveau, c.boss.butin);
+      if (placerObjet(p, butinBoss)) recompenses.objet = butinBoss;
       recompenses.niveauxGagnes = appliquerXp(p, recompenses.xp);
     } else if (Math.random() < K.missions.echec_chance_blessure) { p.blesse = true; p.blessureNiveau = c.niveau; }
     sauver(p);
@@ -232,7 +307,9 @@ app.post('/api/mission', (req, res) => {
   let resultat;
   if (reussite) {
     const mult = t => c.type === t ? 1.3 : 1;
-    const gains = { or: Math.round(orMission(c.niveau) * mult('or')), xp: Math.round(xpMission(c.niveau) * mult('xp')) };
+    const sp = EQ.statsSpeciales(p.equipement);
+    const gains = { or: Math.round(orMission(c.niveau) * mult('or') * (1 + sp.aubaine / 100)),
+                    xp: Math.round(xpMission(c.niveau) * mult('xp') * (1 + sp.sagesse / 100)) };
     p.or += gains.or;
     p.contratsAccomplis[c.id] = (p.contratsAccomplis[c.id] || 0) + 1;
     const objet = tirerButinMission(p, c);
@@ -296,10 +373,9 @@ app.post('/api/forge/acheter', (req, res) => {
     return res.status(400).json({ erreur: 'Commande invalide.' });
   const prix = EQ.prixObjet(p.niveau, rarete);
   if (p.or < prix) return res.status(400).json({ erreur: `Il faut ${prix} or. La forge ne fait pas crédit non plus.` });
-  if (p.inventaire.length >= K.equipement.taille_inventaire) return res.status(400).json({ erreur: 'Inventaire plein. Vendez ou équipez.' });
-  p.or -= prix;
   const objet = EQ.genererObjet(emplacement, p.niveau, rarete);
-  p.inventaire.push(objet);
+  if (!placerObjet(p, objet)) return res.status(400).json({ erreur: 'Pas la place dans le sac : vendez, équipez, ou agrandissez-le.' });
+  p.or -= prix;
   sauver(p);
   res.json({ objet, prix, personnage: etatPublic(p) });
 });
@@ -309,9 +385,17 @@ app.post('/api/equiper', (req, res) => {
   const i = req.body.index;
   if (!p || p.inventaire[i] === undefined) return res.status(400).json({ erreur: 'Objet introuvable.' });
   const objet = p.inventaire.splice(i, 1)[0];
+  const posOrigine = objet.pos;
   const ancien = p.equipement[objet.emplacement];
   p.equipement[objet.emplacement] = objet;
-  if (ancien) p.inventaire.push(ancien); // l'ancien objet retourne dans le sac
+  delete objet.pos;
+  if (ancien && !placerObjet(p, ancien)) {
+    // pas la place de ranger l'ancien : on annule l'échange
+    p.equipement[objet.emplacement] = ancien;
+    objet.pos = posOrigine;
+    p.inventaire.splice(i, 0, objet);
+    return res.status(400).json({ erreur: `Pas la place de ranger ${ancien.nom} : faites de la place d'abord.` });
+  }
   sauver(p);
   res.json({ objet, ancien, personnage: etatPublic(p) });
 });
@@ -322,9 +406,8 @@ app.post('/api/desequiper', (req, res) => {
   if (!p || !K.equipement.emplacements.includes(emp)) return res.status(400).json({ erreur: 'Emplacement inconnu.' });
   const objet = p.equipement[emp];
   if (!objet) return res.status(400).json({ erreur: 'Emplacement déjà vide.' });
-  if (p.inventaire.length >= K.equipement.taille_inventaire) return res.status(400).json({ erreur: 'Sac plein : impossible d’y ranger la pièce.' });
+  if (!placerObjet(p, objet)) return res.status(400).json({ erreur: 'Pas la place dans le sac pour cette pièce.' });
   p.equipement[emp] = null;
-  p.inventaire.push(objet);
   sauver(p);
   res.json({ objet, personnage: etatPublic(p) });
 });
@@ -349,11 +432,41 @@ app.post('/api/fusionner', (req, res) => {
   if (p.or < cout) return res.status(400).json({ erreur: `La fusion coûte ${cout} or de charbon et de sueur.` });
   p.or -= cout;
   // Retirer les deux pièces (indices décroissants pour ne pas se décaler)
-  for (const i of [indexA, indexB].sort((x, y) => y - x)) p.inventaire.splice(i, 1);
+  const retires = [indexA, indexB].sort((x, y) => y - x).map(i => p.inventaire.splice(i, 1)[0]);
   const objet = EQ.genererObjet(a.emplacement, niveau, rareteSup);
-  p.inventaire.push(objet);
+  if (!placerObjet(p, objet)) {
+    for (const o of retires.reverse()) p.inventaire.push(o); // positions conservées : les cases viennent d'être libérées
+    p.or += cout;
+    return res.status(400).json({ erreur: 'La pièce fondue est plus grande : faites de la place dans le sac.' });
+  }
   sauver(p);
   res.json({ objet, cout, personnage: etatPublic(p) });
+});
+
+// Déplacer une pièce du sac vers une case précise (réagencement façon Tetris).
+app.post('/api/deplacer', (req, res) => {
+  const p = charger(req.body.nom);
+  const { index, x, y } = req.body;
+  const o = p && p.inventaire[index];
+  if (!o || !Number.isInteger(x) || !Number.isInteger(y)) return res.status(400).json({ erreur: 'Déplacement invalide.' });
+  if (!peutPoser(p, o.taille, x, y, cellulesDebloquees(p), grilleOccupation(p), index))
+    return res.status(400).json({ erreur: 'Cette pièce ne tient pas là.' });
+  o.pos = { x, y };
+  sauver(p);
+  res.json({ objet: o, personnage: etatPublic(p) });
+});
+
+// Agrandir le sac : +4 cases contre de l'or, prix doublant à chaque extension.
+app.post('/api/sac/extension', (req, res) => {
+  const p = charger(req.body.nom);
+  if (!p) return res.status(404).json({ erreur: 'Inconnu au registre.' });
+  if ((p.extensionsSac || 0) >= SAC.extensions_max) return res.status(400).json({ erreur: 'Le sellier ne fait pas plus grand.' });
+  const prix = prixExtension(p);
+  if (p.or < prix) return res.status(400).json({ erreur: `L'extension coûte ${prix} or.` });
+  p.or -= prix;
+  p.extensionsSac = (p.extensionsSac || 0) + 1;
+  sauver(p);
+  res.json({ prix, personnage: etatPublic(p) });
 });
 
 app.post('/api/vendre', (req, res) => {
@@ -365,6 +478,98 @@ app.post('/api/vendre', (req, res) => {
   p.or += prix;
   sauver(p);
   res.json({ objet, prix, personnage: etatPublic(p) });
+});
+
+// ---------- Arène classée (ELO, document de design §7.2) ----------
+const ligueDe = elo => [...K.arene.ligues].reverse().find(([, seuil]) => elo >= seuil)[0];
+const deltaElo = (eloA, eloB, score) => Math.round(K.arene.k * (score - 1 / (1 + 10 ** ((eloB - eloA) / 400))));
+
+// Tous les personnages du registre (les snapshots servent de défenseurs PvP asynchrones).
+function tousLesPersonnages(sauf) {
+  const liste = [];
+  for (const f of fs.readdirSync(DOSSIER_SAUVEGARDES)) {
+    if (!f.endsWith('.json')) continue;
+    try {
+      const q = JSON.parse(fs.readFileSync(path.join(DOSSIER_SAUVEGARDES, f)));
+      if (q.nom && q.nom.toLowerCase() !== (sauf || '').toLowerCase()) liste.push(q);
+    } catch {}
+  }
+  return liste;
+}
+
+app.get('/api/arene/:nom', (req, res) => {
+  const p = charger(req.params.nom);
+  if (!p) return res.status(404).json({ erreur: 'Inconnu au registre.' });
+  sauver(p);
+  const classement = [...tousLesPersonnages(null)]
+    .map(q => ({ nom: q.nom, classe: q.classe, niveau: q.niveau, elo: q.elo === undefined ? K.arene.elo_depart : q.elo }))
+    .sort((a, b) => b.elo - a.elo).slice(0, 10)
+    .map((q, i) => ({ rang: i + 1, ...q, ligue: ligueDe(q.elo) }));
+  res.json({ elo: p.elo, ligue: ligueDe(p.elo), attaquesRestantes: p.arene.restantes,
+             attaquesParJour: K.arene.attaques_par_jour, classement });
+});
+
+app.post('/api/arene/attaquer', (req, res) => {
+  const p = charger(req.body.nom);
+  if (!p) return res.status(404).json({ erreur: 'Inconnu au registre.' });
+  if (p.arene.restantes <= 0) return res.status(400).json({ erreur: "Plus d'attaques classées aujourd'hui. L'arène rouvre demain." });
+  p.arene.restantes--;
+
+  // Appariement : ELO ± 100 ET niveau ± 8 (élargi progressivement s'il n'y a personne).
+  const candidats = tousLesPersonnages(p.nom).filter(q => Math.abs(q.niveau - p.niveau) <= K.arene.plage_niveau);
+  let adv = null;
+  for (const plage of [1, 2, 4]) {
+    const dansLaPlage = candidats.filter(q => Math.abs((q.elo ?? K.arene.elo_depart) - p.elo) <= K.arene.plage_elo * plage);
+    if (dansLaPlage.length) { adv = dansLaPlage[Math.floor(Math.random() * dansLaPlage.length)]; break; }
+  }
+  let defenseur, eloDefenseur, defenseurReel = false;
+  if (adv) {
+    defenseurReel = true;
+    eloDefenseur = adv.elo ?? K.arene.elo_depart;
+    defenseur = new Combattant(`${adv.nom} (${adv.classe}, niv. ${adv.niveau})`, adv.classe, adv.attributs, adv.equipement);
+  } else {
+    // Personne dans la fourchette : un champion de l'arène fait le sparring (ELO simulé).
+    const classes = Object.keys(K.classes);
+    const classeBot = classes[Math.floor(Math.random() * classes.length)];
+    eloDefenseur = p.elo + Math.floor(Math.random() * 80) - 40;
+    defenseur = creerBot(`Champion de l'arène (${classeBot}, niv. ${p.niveau})`, classeBot, p.niveau, EQ.panoplieBot(p.niveau, 'Inhabituel'));
+  }
+  const r = duel(combattantDuJoueur(p), defenseur);
+  const victoire = r.vainqueur === p.nom;
+  const delta = deltaElo(p.elo, eloDefenseur, victoire ? 1 : 0);
+  p.elo += delta;
+  let gains = null;
+  if (victoire) {
+    p.victoires++;
+    const sp = EQ.statsSpeciales(p.equipement);
+    gains = { or: Math.round(orMission(p.niveau) * 0.8 * (1 + sp.aubaine / 100)),
+              xp: Math.round(xpMission(p.niveau) * 0.8 * (1 + sp.sagesse / 100)) };
+    p.or += gains.or;
+    gains.niveauxGagnes = appliquerXp(p, gains.xp);
+  } else p.defaites++;
+  sauver(p);
+  // Le défenseur réel gagne/perd aussi son ELO (PvP asynchrone).
+  if (defenseurReel) {
+    const q = charger(adv.nom);
+    if (q) { q.elo += deltaElo(eloDefenseur, p.elo - delta, victoire ? 0 : 1); sauver(q); }
+  }
+  res.json({ victoire, adversaire: defenseur.nom, defenseurReel, journal: r.journal, gains,
+             elo: p.elo, delta, ligue: ligueDe(p.elo), attaquesRestantes: p.arene.restantes,
+             personnage: etatPublic(p) });
+});
+
+// Reforge : relance les affixes d'une pièce Rare+ contre une part de son prix.
+app.post('/api/reforger', (req, res) => {
+  const p = charger(req.body.nom);
+  const o = p && p.inventaire[req.body.index];
+  if (!p || !o) return res.status(400).json({ erreur: 'Objet introuvable.' });
+  if (!K.equipement.affixes[o.rarete]) return res.status(400).json({ erreur: 'Seules les pièces Rare et plus portent des affixes.' });
+  const cout = Math.round(EQ.prixObjet(o.niveau, o.rarete) * K.equipement.reforge_part_prix);
+  if (p.or < cout) return res.status(400).json({ erreur: `Le reforgeage coûte ${cout} or.` });
+  p.or -= cout;
+  o.affixes = EQ.tirerAffixes(o.rarete);
+  sauver(p);
+  res.json({ objet: o, cout, personnage: etatPublic(p) });
 });
 
 app.post('/api/duel', (req, res) => {
@@ -386,7 +591,9 @@ app.post('/api/duel', (req, res) => {
   let gains = null;
   if (victoire) {
     p.victoires++;
-    gains = { or: Math.round(orMission(p.niveau) * 0.6), xp: Math.round(xpMission(p.niveau) * 0.6) };
+    const sp = EQ.statsSpeciales(p.equipement);
+    gains = { or: Math.round(orMission(p.niveau) * 0.6 * (1 + sp.aubaine / 100)),
+              xp: Math.round(xpMission(p.niveau) * 0.6 * (1 + sp.sagesse / 100)) };
     p.or += gains.or;
     gains.niveauxGagnes = appliquerXp(p, gains.xp);
   } else p.defaites++;

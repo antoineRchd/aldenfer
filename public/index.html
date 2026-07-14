@@ -163,6 +163,7 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .chiffreDegats.crit{font-size:44px;color:var(--ambrefeu-vif)}
 .chiffreDegats.info{font-size:16px;font-family:'Alegreya',serif;font-style:italic;color:var(--brume)}
 .chiffreDegats.soin{color:#9fd0ff;font-size:18px}
+.chiffreDegats.epines{color:#c78a5b;font-size:19px}
 @keyframes flotte{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-44px)}}
 .eclairVs{align-self:center;font-family:'Grenze Gotisch',serif;font-size:30px;color:var(--sang);padding-top:38px}
 .bandeauTour{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brume);letter-spacing:.2em;text-transform:uppercase;margin:14px 0 4px;min-height:20px}
@@ -203,9 +204,18 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .puissanceResume{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--brume);line-height:1.9}
 .puissanceResume b{color:var(--ambrefeu-vif);font-weight:500}
 .sacs h3{color:var(--ambrefeu);margin-bottom:10px}
-.grilleSac{display:grid;grid-template-columns:repeat(auto-fill,64px);gap:8px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;min-height:88px}
-.grilleSac .case{border-style:solid;border-color:#2b323d}
-.grilleSac .case.vide{border-style:dashed;border-color:#242b35}
+/* Sac spatial : grille fixe, cases verrouillées hachurées, objets multi-cases */
+.grilleSac{display:grid;grid-template-columns:repeat(var(--cols,8),50px);grid-auto-rows:50px;gap:6px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;width:max-content;max-width:100%;overflow-x:auto}
+.celluleFond{border:1.5px dashed #242b35;border-radius:5px;background:#161a21}
+.celluleFond.verrou{border:1.5px solid #1a1f27;background:repeating-linear-gradient(45deg,#101319,#101319 6px,#151920 6px,#151920 12px)}
+.celluleFond.cibleDepot{border:2px solid var(--ambrefeu);background:#2a2418}
+.objetSac{position:relative;z-index:2;border:2px solid;border-radius:6px;background:#1d232d;cursor:grab;display:flex;align-items:center;justify-content:center}
+.objetSac:hover{filter:brightness(1.25)}
+.objetSac svg.icone{width:72%;height:72%;max-width:42px;max-height:60px;pointer-events:none}
+.objetSac .nivCoin{position:absolute;top:2px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brume);pointer-events:none}
+.objetSac.cibleFusion{border-color:var(--r-epique)!important;box-shadow:0 0 12px rgba(160,107,199,.55);background:#241d2e}
+.barreSac{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.barreSac button{font-size:14px}
 .zoneVente{margin-top:12px;border:2px dashed var(--fer-clair);border-radius:6px;padding:12px 14px;color:var(--brume);font-style:italic;font-size:14.5px;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s}
 .zoneVente.cibleDepot{border-color:var(--ambrefeu);background:#2a2418;color:var(--ambrefeu-vif)}
 .zoneVente svg{width:26px;height:26px;flex-shrink:0}
@@ -217,9 +227,17 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .bord-Commun{border-left-color:var(--r-commun)!important} .bord-Inhabituel{border-left-color:var(--r-inhabituel)!important} .bord-Rare{border-left-color:var(--r-rare)!important} .bord-Épique{border-left-color:var(--r-epique)!important} .bord-Légendaire{border-left-color:var(--r-legendaire)!important}
 .rar-Commun{color:var(--r-commun)} .rar-Inhabituel{color:var(--r-inhabituel)} .rar-Rare{color:var(--r-rare)} .rar-Épique{color:var(--r-epique)} .rar-Légendaire{color:var(--r-legendaire)}
 .contour-Commun{border-color:var(--r-commun)!important} .contour-Inhabituel{border-color:var(--r-inhabituel)!important} .contour-Rare{border-color:var(--r-rare)!important} .contour-Épique{border-color:var(--r-epique)!important} .contour-Légendaire{border-color:var(--r-legendaire)!important}
-#infobulle{position:fixed;z-index:300;background:#10141a;border:1px solid var(--fer-clair);border-radius:5px;padding:10px 13px;font-size:14px;pointer-events:none;max-width:260px;box-shadow:0 6px 18px rgba(0,0,0,.6);line-height:1.45}
+#infobulle{position:fixed;z-index:300;background:#10141a;border:1px solid var(--fer-clair);border-radius:5px;padding:10px 13px;font-size:14px;pointer-events:none;max-width:280px;box-shadow:0 6px 18px rgba(0,0,0,.6);line-height:1.45}
 #infobulle .titreBulle{font-family:'Grenze Gotisch',serif;font-size:17px}
 #infobulle .mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--brume)}
+.affixe{color:var(--reussite);font-size:13.5px}
+.affixe small{color:var(--brume);font-style:italic}
+.serieBulle{color:var(--r-epique);font-size:13px;margin-top:3px;font-style:italic}
+.panneauSeries{margin-top:14px;font-size:13.5px;line-height:1.6}
+.panneauSeries .titreSerie{color:var(--r-epique);font-family:'Grenze Gotisch',serif;font-size:16px}
+.panneauSeries .palier{color:var(--brume)}
+.panneauSeries .palier.actif{color:var(--reussite)}
+.statsSpecialesResume{margin-top:10px;font-size:13.5px;color:var(--reussite);line-height:1.6}
 .forge{margin-top:26px}
 .forge table{width:100%;border-collapse:collapse;font-size:14.5px}
 .forge th{font-family:'Grenze Gotisch',serif;font-weight:500;font-size:16px;color:var(--brume);text-align:left;padding:6px 8px;border-bottom:1px solid var(--fer-clair)}
@@ -229,6 +247,20 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 
 /* ---------- Arène + registre ---------- */
 #panneauArene .intro{color:var(--brume);font-style:italic;margin-bottom:18px;max-width:640px}
+.carteElo{display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.chiffreElo{font-family:'IBM Plex Mono',monospace;font-size:19px}
+.chiffreElo b{color:var(--ambrefeu-vif)}
+.insigneLigue{font-family:'Grenze Gotisch',serif;font-size:19px;padding:4px 16px;border-radius:4px;border:1px solid var(--fer-clair);background:var(--fer)}
+.ligue-Bronze{color:#c78a5b}.ligue-Argent{color:#b8c2cc}.ligue-Or{color:var(--ambrefeu-vif)}
+.ligue-Platine{color:#9fd0ff}.ligue-Maître{color:var(--r-epique)}.ligue-Grand\ Maître{color:var(--sang)}
+.boutonsArene{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.classement{margin-top:26px}
+.classement h3{color:var(--ambrefeu);margin-bottom:10px}
+.classement table{width:100%;max-width:640px;border-collapse:collapse;font-size:15px}
+.classement th{font-family:'Grenze Gotisch',serif;font-weight:500;color:var(--brume);text-align:left;padding:5px 10px;border-bottom:1px solid var(--fer-clair)}
+.classement td{padding:6px 10px;border-bottom:1px solid #2b323d}
+.classement tr.moi td{background:#2a2418;color:var(--ambrefeu-vif)}
+.classement .mono{font-family:'IBM Plex Mono',monospace;font-size:13.5px}
 .bilan{font-family:'IBM Plex Mono',monospace;color:var(--brume);margin:14px 0}
 .registreCombat{background:#0e1116;border:1px solid var(--fer-clair);border-left:4px solid var(--ambrefeu);border-radius:4px;padding:16px 20px;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;max-height:300px;overflow-y:auto;white-space:pre-wrap}
 .registreCombat .tour{color:var(--ambrefeu)}
@@ -318,9 +350,13 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
         <div class="puissanceResume" id="puissanceResume"></div>
       </div>
       <div class="sacs">
-        <h3>Sac (<span id="tailleSac">0</span>/<span id="tailleSacMax">30</span>)</h3>
-        <p class="noteClasse" style="margin-bottom:8px">Glissez une pièce sur l'équipement porté pour l'équiper, sur une pièce jumelle pour la <b>fondre</b> (rareté supérieure), sur l'étal pour la vendre. Double-clic : équiper. Clic sur une pièce portée : ranger au sac.</p>
+        <h3>Sac — <span id="tailleSac">0</span> case(s) libre(s) sur <span id="tailleSacMax">6</span></h3>
+        <p class="noteClasse" style="margin-bottom:8px">Chaque pièce occupe sa place : une épée tient debout (1×2, les grandes lames 1×3), une armure fait 2×2... Glissez pour réagencer, équiper, <b>fondre</b> (sur une pièce jumelle) ou vendre. Le sac grandit avec vos niveaux — et chez le sellier.</p>
         <div class="grilleSac" id="grilleSac"></div>
+        <div class="barreSac">
+          <button id="btnExtension" onclick="acheterExtension()"></button>
+          <span class="noteClasse" id="noteExtension"></span>
+        </div>
         <div class="zoneVente" id="zoneVente">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h16l-1.5 11h-13L4 9z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
           <span>L'étal d'Orin — déposez ici pour vendre (30 % du prix)</span>
@@ -336,11 +372,25 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   </section>
 
   <section id="panneauArene" class="cache">
-    <p class="intro">Duels d'honneur au Rempart-aux-Corbeaux. L'adversaire est tiré au sort parmi les lames de votre trempe — et il est équipé, comme vous. Coût : 10 points d'énergie.</p>
-    <button class="principal" id="btnDuel" onclick="lancerDuel()">Provoquer en duel</button>
+    <div class="enteteArene">
+      <div class="carteElo">
+        <span class="insigneLigue" id="insigneLigue"></span>
+        <span class="chiffreElo"><b id="eloJoueur"></b> ELO</span>
+        <span class="mono" id="attaquesArene"></span>
+      </div>
+      <p class="intro">L'arène classée du Rempart-aux-Corbeaux : cinq assauts par jour contre des lames de votre trempe (ELO ± 100, niveau ± 8) — de vrais aventuriers du registre quand il y en a. Le duel d'entraînement, lui, ne coûte que de l'énergie.</p>
+    </div>
+    <div class="boutonsArene">
+      <button class="principal" id="btnArene" onclick="lancerArene()">Assaut classé</button>
+      <button id="btnDuel" onclick="lancerDuel()">Duel d'entraînement (10 énergie)</button>
+    </div>
     <p class="bilan" id="bilanArene"></p>
     <div id="conteneurScene"></div>
     <div class="registreCombat cache" id="registreCombat"></div>
+    <div class="classement">
+      <h3>Registre de l'arène — les dix lames les mieux cotées</h3>
+      <table id="tableClassement"></table>
+    </div>
   </section>
 
   <p class="piedDev">Outils de prototype : <button onclick="devEnergie()">Remplir l'énergie</button> <span>(à retirer en production — en vrai jeu, l'attente fait partie du design)</span></p>
@@ -590,6 +640,38 @@ function montrerOnglet(nom) {
   if (nom === 'Contrats') chargerCarte();
   if (nom === 'Attributs') afficherAttributs();
   if (nom === 'Equipement') afficherEquipement();
+  if (nom === 'Arene') chargerArene();
+}
+async function chargerArene() {
+  try {
+    const a = await api('/api/arene/' + encodeURIComponent(perso.nom));
+    document.getElementById('eloJoueur').textContent = fmt(a.elo);
+    const insigne = document.getElementById('insigneLigue');
+    insigne.textContent = a.ligue;
+    insigne.className = 'insigneLigue ligue-' + a.ligue.replace(/ /g, ' ');
+    document.getElementById('attaquesArene').textContent = 'Assauts restants aujourd’hui : ' + a.attaquesRestantes + '/' + a.attaquesParJour;
+    document.getElementById('btnArene').disabled = a.attaquesRestantes <= 0;
+    let html = '<tr><th>#</th><th>Nom</th><th>Voie</th><th>Niv.</th><th>ELO</th><th>Ligue</th></tr>';
+    for (const l of a.classement)
+      html += '<tr' + (l.nom === perso.nom ? ' class="moi"' : '') + '><td class="mono">' + l.rang + '</td><td>' + ech(l.nom) + '</td><td>' + l.classe + '</td>' +
+              '<td class="mono">' + l.niveau + '</td><td class="mono">' + fmt(l.elo) + '</td><td class="ligue-' + l.ligue.replace(/ /g, ' ') + '">' + l.ligue + '</td></tr>';
+    document.getElementById('tableClassement').innerHTML = html;
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function lancerArene() {
+  const btn = document.getElementById('btnArene');
+  btn.disabled = true;
+  try {
+    const r = await api('/api/arene/attaquer', { nom: perso.nom });
+    perso = r.personnage;
+    await jouerScene(r.journal, r.victoire);
+    const signe = r.delta >= 0 ? '+' : '−';
+    toast((r.victoire ? 'Victoire classée contre ' : 'Défaite classée contre ') + r.adversaire +
+          (r.defenseurReel ? ' (aventurier du registre !)' : '') + ' — ELO ' + signe + Math.abs(r.delta) + ' → ' + fmt(r.elo) + ' (' + r.ligue + ').',
+          r.victoire ? 'bon' : 'mauvais');
+    if (r.victoire && r.gains) annoncerNiveaux(r.gains.niveauxGagnes);
+    rafraichirEntete(); chargerArene();
+  } catch(e) { toast(e.message, 'mauvais'); chargerArene(); }
 }
 function annoncerNiveaux(niveaux) {
   (niveaux || []).forEach(n => toast('Niveau ' + n + ' atteint ! Énergie restaurée, votre réputation grandit.', 'bon'));
@@ -927,14 +1009,28 @@ async function soigner() {
 }
 
 /* ---------- Infobulle ---------- */
+function lignesAffixes(o) {
+  let s = '';
+  for (const a of o.affixes || []) {
+    const meta = CONF.stats_speciales[a.stat];
+    s += '<div class="affixe">◆ ' + meta.nom + ' +' + a.val + ' % <small>(' + meta.desc.replace('X', a.val) + ')</small></div>';
+  }
+  if (o.serie) {
+    const portees = Object.values(perso.equipement).filter(x => x && x.serie === o.serie).length;
+    s += '<div class="serieBulle">Série « ' + ech(o.serie) + ' » — ' + portees + ' portée' + (portees > 1 ? 's' : '') + '</div>';
+  }
+  return s;
+}
 function montrerBulle(e, o) {
   cacherBulle();
   const b = document.createElement('div');
   b.id = 'infobulle';
   b.innerHTML =
     '<div class="titreBulle rar-' + o.rarete + '">' + ech(o.nom) + '</div>' +
-    '<div class="mono">' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + '</div>' +
-    '<div>' + descObjet(o) + '</div>';
+    '<div class="mono">' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete +
+      (o.taille ? ' · ' + o.taille.w + '×' + o.taille.h + ' case' + (o.taille.w * o.taille.h > 1 ? 's' : '') : '') + '</div>' +
+    '<div>' + descObjet(o) + '</div>' +
+    lignesAffixes(o);
   document.body.appendChild(b);
   bougerBulle(e);
 }
@@ -979,26 +1075,81 @@ async function afficherEquipement() {
   const b = perso.bonusEquipement;
   const morceaux = Object.entries(NOMS_EFFETS)
     .filter(([e]) => b[e]) .map(([e, n]) => '+<b>' + fmtBonus(b[e]) + '</b> ' + n);
+  // Stats spéciales totales (affixes + séries, plafonnées) et séries portées.
+  const sp = perso.statsSpeciales;
+  const speciales = Object.entries(CONF.stats_speciales)
+    .filter(([s]) => sp[s] > 0)
+    .map(([s, meta]) => meta.nom + ' <b>' + sp[s] + ' %</b>' + (sp[s] >= meta.cap ? ' (plafond)' : ''));
+  let seriesHtml = '';
+  for (const se of sp._series || []) {
+    const paliers = Object.entries(CONF.series[se.serie].bonus).map(([palier, bonus]) => {
+      const actif = se.pieces >= parseInt(palier);
+      const detail = Object.entries(bonus).map(([st, v]) => CONF.stats_speciales[st].nom + ' +' + v + ' %').join(', ');
+      return '<span class="palier' + (actif ? ' actif' : '') + '">' + palier + 'p : ' + detail + (actif ? ' ✓' : '') + '</span>';
+    }).join('<br>');
+    seriesHtml += '<div><span class="titreSerie">Série « ' + ech(se.serie) + ' » — ' + se.pieces + '/6</span><br>' + paliers + '</div>';
+  }
   document.getElementById('puissanceResume').innerHTML =
     'Bonus de panoplie :<br>' + (morceaux.length ? morceaux.join(' · ') : '<i>aucun</i>') + '<br><br>' +
-    'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>';
+    'Puissance totale :<br>ATK <b>' + fmt(perso.puissance.atk) + '</b> · DÉF <b>' + fmt(perso.puissance.def) + '</b> · PV <b>' + fmt(perso.puissance.pv) + '</b>' +
+    (speciales.length ? '<div class="statsSpecialesResume">Stats spéciales :<br>' + speciales.join(' · ') + '</div>' : '') +
+    (seriesHtml ? '<div class="panneauSeries">' + seriesHtml + '</div>' : '');
 
+  // --- Sac spatial : cases de fond (déverrouillées/verrouillées) + objets multi-cases ---
+  const sac = perso.sac;
   const grille = document.getElementById('grilleSac');
-  document.getElementById('tailleSac').textContent = perso.inventaire.length;
-  document.getElementById('tailleSacMax').textContent = CONF.taille_inventaire;
+  grille.style.setProperty('--cols', sac.colonnes);
+  const debloquees = new Set(sac.ordre.map(c => c.x + ',' + c.y));
   let sacHtml = '';
-  perso.inventaire.forEach((o, i) => { sacHtml += caseObjet(o, 'data-index="' + i + '"'); });
-  for (let i = perso.inventaire.length; i < CONF.taille_inventaire; i++) sacHtml += '<div class="case vide"></div>';
+  for (let y = 0; y < sac.lignes; y++)
+    for (let x = 0; x < sac.colonnes; x++) {
+      const deb = debloquees.has(x + ',' + y);
+      sacHtml += '<div class="celluleFond' + (deb ? '' : ' verrou') + '"' + (deb ? ' data-x="' + x + '" data-y="' + y + '"' : '') +
+                 ' style="grid-column:' + (x + 1) + ';grid-row:' + (y + 1) + '"></div>';
+    }
+  perso.inventaire.forEach((o, i) => {
+    sacHtml += '<div class="objetSac contour-' + o.rarete + '" data-index="' + i + '" draggable="true"' +
+      ' style="grid-column:' + (o.pos.x + 1) + ' / span ' + o.taille.w + ';grid-row:' + (o.pos.y + 1) + ' / span ' + o.taille.h + '">' +
+      svgIcone(o.emplacement, o.rarete) + '<span class="nivCoin">' + o.niveau + '</span></div>';
+  });
   grille.innerHTML = sacHtml;
+  const occupees = perso.inventaire.reduce((s, o) => s + o.taille.w * o.taille.h, 0);
+  document.getElementById('tailleSac').textContent = sac.cases - occupees;
+  document.getElementById('tailleSacMax').textContent = sac.cases;
+  const btnExt = document.getElementById('btnExtension');
+  if (sac.extensions >= sac.extensionsMax || sac.cases >= sac.casesMax) {
+    btnExt.disabled = true;
+    btnExt.textContent = 'Sac au maximum';
+  } else {
+    btnExt.disabled = perso.or < sac.prixExtension;
+    btnExt.textContent = 'Agrandir le sac (+4 cases) — ' + fmt(sac.prixExtension) + ' or';
+  }
+  document.getElementById('noteExtension').textContent =
+    'Extensions du sellier : ' + sac.extensions + '/' + sac.extensionsMax + ' · +1 case par niveau gagné.';
   document.getElementById('detailObjet').classList.add('cache');
 
   brancherInteractions();
   await afficherForge();
 }
+async function acheterExtension() {
+  try {
+    const r = await api('/api/sac/extension', { nom: perso.nom });
+    perso = r.personnage;
+    toast('Le sellier coud un soufflet de plus : +4 cases pour ' + fmt(r.prix) + ' or.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function deplacer(index, x, y) {
+  try {
+    const r = await api('/api/deplacer', { nom: perso.nom, index, x, y });
+    perso = r.personnage;
+    afficherEquipement();
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
 function brancherInteractions() {
-  // Cases du sac : infobulle, sélection, double-clic pour équiper, glisser (équiper,
-  // vendre, ou FUSIONNER en déposant sur une pièce jumelle).
-  document.querySelectorAll('#grilleSac .case.pleine').forEach(el => {
+  // Objets du sac : infobulle, sélection, double-clic pour équiper, glisser (réagencer,
+  // équiper, vendre, ou FUSIONNER en déposant sur une pièce jumelle).
+  document.querySelectorAll('#grilleSac .objetSac').forEach(el => {
     const i = parseInt(el.dataset.index);
     const o = perso.inventaire[i];
     el.addEventListener('mouseenter', e => montrerBulle(e, o));
@@ -1012,7 +1163,7 @@ function brancherInteractions() {
       document.querySelectorAll('.case[data-slot="' + o.emplacement + '"], #zoneVente').forEach(z => z.classList.add('cibleDepot'));
       if (rareteSuivante(o.rarete)) perso.inventaire.forEach((p2, j) => {
         if (j !== i && p2.emplacement === o.emplacement && p2.rarete === o.rarete)
-          document.querySelector('#grilleSac .case[data-index="' + j + '"]').classList.add('cibleFusion');
+          document.querySelector('#grilleSac .objetSac[data-index="' + j + '"]').classList.add('cibleFusion');
       });
     });
     el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot,.cibleFusion').forEach(z => z.classList.remove('cibleDepot', 'cibleFusion')));
@@ -1021,6 +1172,17 @@ function brancherInteractions() {
       e.preventDefault(); e.stopPropagation();
       const d = donneesDepot(e);
       if (d && d.de === 'sac' && d.index !== i) fusionner(d.index, i);
+    });
+  });
+  // Cases libres du sac : cible de réagencement (la case visée devient le coin haut-gauche).
+  document.querySelectorAll('#grilleSac .celluleFond[data-x]').forEach(el => {
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('cibleDepot'); });
+    el.addEventListener('dragleave', () => el.classList.remove('cibleDepot'));
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('cibleDepot');
+      const d = donneesDepot(e);
+      if (d && d.de === 'sac') deplacer(d.index, parseInt(el.dataset.x), parseInt(el.dataset.y));
     });
   });
   // Cases de l'équipement porté : infobulle, clic pour ranger, zone de dépôt.
@@ -1078,12 +1240,28 @@ function choisirObjetSac(i) {
     const f = coutFusion(o, perso.inventaire[jumeau]);
     if (f) boutonFusion = '<button class="rar-' + f.rarete + '" onclick="fusionner(' + i + ',' + jumeau + ')">Fusionner → ' + f.rarete + ' · ' + fmt(f.cout) + ' or</button>';
   }
+  let boutonReforge = '';
+  if (CONF.affixes[o.rarete]) {
+    const coutR = Math.round(prixObjetClient(o.niveau, o.rarete) * CONF.reforge_part_prix);
+    boutonReforge = '<button onclick="reforger(' + i + ')">Reforger les affixes · ' + fmt(coutR) + ' or</button>';
+  }
   d.className = 'detailObjet bord-' + o.rarete;
   d.innerHTML =
     '<span class="objetNom rar-' + o.rarete + '">' + ech(o.nom) +
       '<small>' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + ' · ' + descObjet(o) +
       (equipe ? ' — remplacerait ' + ech(equipe.nom) : '') + '</small></span>' +
-    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button>' + boutonFusion + '<button onclick="vendre(' + i + ')">Vendre</button></span>';
+    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button>' + boutonFusion + boutonReforge + '<button onclick="vendre(' + i + ')">Vendre</button></span>';
+}
+async function reforger(i) {
+  try {
+    cacherBulle();
+    const r = await api('/api/reforger', { nom: perso.nom, index: i });
+    perso = r.personnage;
+    const detail = (r.objet.affixes || []).map(a => CONF.stats_speciales[a.stat].nom + ' +' + a.val + ' %').join(', ');
+    toast('Orin reforge pour ' + fmt(r.cout) + ' or : ' + detail + '.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+    choisirObjetSac(i);
+  } catch(e) { toast(e.message, 'mauvais'); }
 }
 async function fusionner(a, b) {
   try {
@@ -1214,7 +1392,10 @@ async function jouerScene(journal, victoire, conteneur) {
       if (ev.surcharge) flotteChiffre(de, 'SURCHARGE', 'info');
       if (ev.embuscade) flotteChiffre(de, 'embuscade', 'info');
       if (ev.absorbe) flotteChiffre(vers, ev.absorbe + ' absorbés', 'soin');
+      if (ev.soin) flotteChiffre(de, '+' + fmt(ev.soin) + ' volés', 'soin');
+      if (ev.epines) flotteChiffre(de, '−' + fmt(ev.epines) + ' épines', 'epines');
       majPv(vers, ev.pvRestants, ev.pvMax);
+      if (ev.pvDe !== undefined) majPv(de, ev.pvDe, ev.pvDeMax);
       await dodo(pause ?? (ev.crit ? 620 : 460));
       vers.classList.remove('touche', 'critTouche');
     }
