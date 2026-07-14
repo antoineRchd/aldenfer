@@ -452,6 +452,40 @@
           }
         }
       }
-    }
+    },
+    "reforge_part_prix": 0.15
+  },
+  "arene": {
+    "attaques_par_jour": 5,
+    "elo_depart": 1000,
+    "k": 32,
+    "plage_elo": 100,
+    "plage_niveau": 8,
+    "ligues": [
+      [
+        "Bronze",
+        0
+      ],
+      [
+        "Argent",
+        1100
+      ],
+      [
+        "Or",
+        1250
+      ],
+      [
+        "Platine",
+        1400
+      ],
+      [
+        "Maître",
+        1550
+      ],
+      [
+        "Grand Maître",
+        1700
+      ]
+    ]
   }
 }

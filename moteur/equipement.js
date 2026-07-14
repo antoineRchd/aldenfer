@@ -123,4 +123,4 @@ function panoplieBot(niveau, rarete = 'Inhabituel') {
   return equipement;
 }
 
-module.exports = { genererObjet, tirerButin, bonusEquipement, panoplieBot, prixObjet, prixRevente, statObjet, tailleObjet, statsSpeciales };
+module.exports = { genererObjet, tirerButin, bonusEquipement, panoplieBot, prixObjet, prixRevente, statObjet, tailleObjet, statsSpeciales, tirerAffixes };

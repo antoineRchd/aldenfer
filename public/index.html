@@ -247,6 +247,20 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 
 /* ---------- Arène + registre ---------- */
 #panneauArene .intro{color:var(--brume);font-style:italic;margin-bottom:18px;max-width:640px}
+.carteElo{display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.chiffreElo{font-family:'IBM Plex Mono',monospace;font-size:19px}
+.chiffreElo b{color:var(--ambrefeu-vif)}
+.insigneLigue{font-family:'Grenze Gotisch',serif;font-size:19px;padding:4px 16px;border-radius:4px;border:1px solid var(--fer-clair);background:var(--fer)}
+.ligue-Bronze{color:#c78a5b}.ligue-Argent{color:#b8c2cc}.ligue-Or{color:var(--ambrefeu-vif)}
+.ligue-Platine{color:#9fd0ff}.ligue-Maître{color:var(--r-epique)}.ligue-Grand\ Maître{color:var(--sang)}
+.boutonsArene{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.classement{margin-top:26px}
+.classement h3{color:var(--ambrefeu);margin-bottom:10px}
+.classement table{width:100%;max-width:640px;border-collapse:collapse;font-size:15px}
+.classement th{font-family:'Grenze Gotisch',serif;font-weight:500;color:var(--brume);text-align:left;padding:5px 10px;border-bottom:1px solid var(--fer-clair)}
+.classement td{padding:6px 10px;border-bottom:1px solid #2b323d}
+.classement tr.moi td{background:#2a2418;color:var(--ambrefeu-vif)}
+.classement .mono{font-family:'IBM Plex Mono',monospace;font-size:13.5px}
 .bilan{font-family:'IBM Plex Mono',monospace;color:var(--brume);margin:14px 0}
 .registreCombat{background:#0e1116;border:1px solid var(--fer-clair);border-left:4px solid var(--ambrefeu);border-radius:4px;padding:16px 20px;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;max-height:300px;overflow-y:auto;white-space:pre-wrap}
 .registreCombat .tour{color:var(--ambrefeu)}
@@ -358,11 +372,25 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   </section>
 
   <section id="panneauArene" class="cache">
-    <p class="intro">Duels d'honneur au Rempart-aux-Corbeaux. L'adversaire est tiré au sort parmi les lames de votre trempe — et il est équipé, comme vous. Coût : 10 points d'énergie.</p>
-    <button class="principal" id="btnDuel" onclick="lancerDuel()">Provoquer en duel</button>
+    <div class="enteteArene">
+      <div class="carteElo">
+        <span class="insigneLigue" id="insigneLigue"></span>
+        <span class="chiffreElo"><b id="eloJoueur"></b> ELO</span>
+        <span class="mono" id="attaquesArene"></span>
+      </div>
+      <p class="intro">L'arène classée du Rempart-aux-Corbeaux : cinq assauts par jour contre des lames de votre trempe (ELO ± 100, niveau ± 8) — de vrais aventuriers du registre quand il y en a. Le duel d'entraînement, lui, ne coûte que de l'énergie.</p>
+    </div>
+    <div class="boutonsArene">
+      <button class="principal" id="btnArene" onclick="lancerArene()">Assaut classé</button>
+      <button id="btnDuel" onclick="lancerDuel()">Duel d'entraînement (10 énergie)</button>
+    </div>
     <p class="bilan" id="bilanArene"></p>
     <div id="conteneurScene"></div>
     <div class="registreCombat cache" id="registreCombat"></div>
+    <div class="classement">
+      <h3>Registre de l'arène — les dix lames les mieux cotées</h3>
+      <table id="tableClassement"></table>
+    </div>
   </section>
 
   <p class="piedDev">Outils de prototype : <button onclick="devEnergie()">Remplir l'énergie</button> <span>(à retirer en production — en vrai jeu, l'attente fait partie du design)</span></p>
@@ -612,6 +640,38 @@ function montrerOnglet(nom) {
   if (nom === 'Contrats') chargerCarte();
   if (nom === 'Attributs') afficherAttributs();
   if (nom === 'Equipement') afficherEquipement();
+  if (nom === 'Arene') chargerArene();
+}
+async function chargerArene() {
+  try {
+    const a = await api('/api/arene/' + encodeURIComponent(perso.nom));
+    document.getElementById('eloJoueur').textContent = fmt(a.elo);
+    const insigne = document.getElementById('insigneLigue');
+    insigne.textContent = a.ligue;
+    insigne.className = 'insigneLigue ligue-' + a.ligue.replace(/ /g, ' ');
+    document.getElementById('attaquesArene').textContent = 'Assauts restants aujourd’hui : ' + a.attaquesRestantes + '/' + a.attaquesParJour;
+    document.getElementById('btnArene').disabled = a.attaquesRestantes <= 0;
+    let html = '<tr><th>#</th><th>Nom</th><th>Voie</th><th>Niv.</th><th>ELO</th><th>Ligue</th></tr>';
+    for (const l of a.classement)
+      html += '<tr' + (l.nom === perso.nom ? ' class="moi"' : '') + '><td class="mono">' + l.rang + '</td><td>' + ech(l.nom) + '</td><td>' + l.classe + '</td>' +
+              '<td class="mono">' + l.niveau + '</td><td class="mono">' + fmt(l.elo) + '</td><td class="ligue-' + l.ligue.replace(/ /g, ' ') + '">' + l.ligue + '</td></tr>';
+    document.getElementById('tableClassement').innerHTML = html;
+  } catch(e) { toast(e.message, 'mauvais'); }
+}
+async function lancerArene() {
+  const btn = document.getElementById('btnArene');
+  btn.disabled = true;
+  try {
+    const r = await api('/api/arene/attaquer', { nom: perso.nom });
+    perso = r.personnage;
+    await jouerScene(r.journal, r.victoire);
+    const signe = r.delta >= 0 ? '+' : '−';
+    toast((r.victoire ? 'Victoire classée contre ' : 'Défaite classée contre ') + r.adversaire +
+          (r.defenseurReel ? ' (aventurier du registre !)' : '') + ' — ELO ' + signe + Math.abs(r.delta) + ' → ' + fmt(r.elo) + ' (' + r.ligue + ').',
+          r.victoire ? 'bon' : 'mauvais');
+    if (r.victoire && r.gains) annoncerNiveaux(r.gains.niveauxGagnes);
+    rafraichirEntete(); chargerArene();
+  } catch(e) { toast(e.message, 'mauvais'); chargerArene(); }
 }
 function annoncerNiveaux(niveaux) {
   (niveaux || []).forEach(n => toast('Niveau ' + n + ' atteint ! Énergie restaurée, votre réputation grandit.', 'bon'));
@@ -1180,12 +1240,28 @@ function choisirObjetSac(i) {
     const f = coutFusion(o, perso.inventaire[jumeau]);
     if (f) boutonFusion = '<button class="rar-' + f.rarete + '" onclick="fusionner(' + i + ',' + jumeau + ')">Fusionner → ' + f.rarete + ' · ' + fmt(f.cout) + ' or</button>';
   }
+  let boutonReforge = '';
+  if (CONF.affixes[o.rarete]) {
+    const coutR = Math.round(prixObjetClient(o.niveau, o.rarete) * CONF.reforge_part_prix);
+    boutonReforge = '<button onclick="reforger(' + i + ')">Reforger les affixes · ' + fmt(coutR) + ' or</button>';
+  }
   d.className = 'detailObjet bord-' + o.rarete;
   d.innerHTML =
     '<span class="objetNom rar-' + o.rarete + '">' + ech(o.nom) +
       '<small>' + NOMS_EMPLACEMENTS[o.emplacement] + ' · niv. ' + o.niveau + ' · ' + o.rarete + ' · ' + descObjet(o) +
       (equipe ? ' — remplacerait ' + ech(equipe.nom) : '') + '</small></span>' +
-    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button>' + boutonFusion + '<button onclick="vendre(' + i + ')">Vendre</button></span>';
+    '<span class="actions"><button onclick="equiper(' + i + ')">Équiper</button>' + boutonFusion + boutonReforge + '<button onclick="vendre(' + i + ')">Vendre</button></span>';
+}
+async function reforger(i) {
+  try {
+    cacherBulle();
+    const r = await api('/api/reforger', { nom: perso.nom, index: i });
+    perso = r.personnage;
+    const detail = (r.objet.affixes || []).map(a => CONF.stats_speciales[a.stat].nom + ' +' + a.val + ' %').join(', ');
+    toast('Orin reforge pour ' + fmt(r.cout) + ' or : ' + detail + '.', 'bon');
+    rafraichirEntete(); afficherEquipement();
+    choisirObjetSac(i);
+  } catch(e) { toast(e.message, 'mauvais'); }
 }
 async function fusionner(a, b) {
   try {

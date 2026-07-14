@@ -7,6 +7,10 @@ node serveur.js
 ```
 Puis ouvrir http://localhost:3000 dans un navigateur.
 
+## Nouveautés v5 (arène classée ELO + reforgeage)
+- **Arène classée** (document de design §7.2) : ELO K=32 départ 1000, **5 assauts par jour** (reset quotidien paresseux), appariement **ELO ± 100 ET niveau ± 8** (élargi ×2 puis ×4 s'il n'y a personne). Les défenseurs sont les **vrais personnages du registre** (snapshots PvP asynchrones — leur ELO bouge aussi) ; un « champion de l'arène » généré fait le sparring sinon. **Ligues** Bronze → Grand Maître (seuils dans `constantes.json > arene`), **classement top 10 du serveur** dans l'onglet Arène. Le duel d'entraînement (énergie, sans ELO) reste disponible.
+- **Reforgeage** (`/api/reforger`) : relancer les affixes d'une pièce Rare+ contre 15 % de son prix de forge — la chasse au bon affixe devient un évier d'or répétable. Bouton avec coût dans le détail d'objet.
+
 ## Nouveautés v4.2 (panoplies et statistiques spéciales)
 - **7 statistiques spéciales** (en %, avec plafonds, définies dans `constantes.json > equipement.stats_speciales`) : Vol de vie (soigne sur les dégâts infligés), Épines (renvoie une part des dégâts subis — peut tuer l'attaquant), Pénétration (ignore une part de la défense), Garde (réduit les dégâts subis), Critique, Aubaine (+or des contrats) et Sagesse (+XP). Intégrées au moteur de combat (journal et animations : PV volés, renvois d'épines) et aux récompenses de missions/duels/primes.
 - **Affixes** : à partir du Rare, chaque pièce reçoit une stat spéciale aléatoire (valeurs ×1,6 en Épique, deux affixes ×2 sur le Légendaire). Affichés en vert dans l'infobulle.
