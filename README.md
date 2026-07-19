@@ -7,6 +7,13 @@ node serveur.js
 ```
 Puis ouvrir http://localhost:3000 dans un navigateur.
 
+## Nouveautés v5.1 (le harnois spatial + polish graphique)
+- **C'est l'ÉQUIPEMENT PORTÉ qui occupe des cases**, pas le sac : le harnois est une grille 4×4 (fond de cuir) où chaque pièce prend son empreinte — épée 1×2 debout (grandes lames Rare+ : 1×3), armure 2×2, bottes/amulette 2×1, casque/anneau 1×1. **6 cases au départ** : il faut choisir quoi porter (épée + armure remplissent déjà tout). Le harnois grandit **+1 case par niveau** (16 max) et par **extensions du sellier** (+2 cases, prix doublant). Réagencement des pièces portées en glisser-déposer (`/api/deplacer`), placement autoritatif côté serveur, équiper refusé proprement si rien ne rentre.
+- **Le sac redevient simple** : une pièce = une case (30 cases), tampon pour le butin et les fusions.
+- Migration automatique des sauvegardes v4/v5 (le spatial passe du sac au harnois, extensions offertes si besoin, l'arme héritée reçoit sa position).
+- **Passe graphique** : fond dégradé, titres lumineux, boutons en relief (dégradés + ombres), panneaux texturés, scène de combat avec sol éclairé et ombres portées sous les figurines, lueur pulsée sur les pièces Légendaires.
+- Équilibre préservé : Brenn 6/10, Éveilleur 9/10 avec préparation complète (le harnois serré du début est le moment de choix, plein équipement possible vers le niveau 7-12).
+
 ## Nouveautés v5 (arène classée ELO + reforgeage)
 - **Arène classée** (document de design §7.2) : ELO K=32 départ 1000, **5 assauts par jour** (reset quotidien paresseux), appariement **ELO ± 100 ET niveau ± 8** (élargi ×2 puis ×4 s'il n'y a personne). Les défenseurs sont les **vrais personnages du registre** (snapshots PvP asynchrones — leur ELO bouge aussi) ; un « champion de l'arène » généré fait le sparring sinon. **Ligues** Bronze → Grand Maître (seuils dans `constantes.json > arene`), **classement top 10 du serveur** dans l'onglet Arène. Le duel d'entraînement (énergie, sans ELO) reste disponible.
 - **Reforgeage** (`/api/reforger`) : relancer les affixes d'une pièce Rare+ contre 15 % de son prix de forge — la chasse au bon affixe devient un évier d'or répétable. Bouton avec coût dans le détail d'objet.

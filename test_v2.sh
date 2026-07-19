@@ -86,7 +86,8 @@ while True:
         r2 = api('/api/forge/acheter', {'nom':'Heros','emplacement':prochaine[0],'rarete':prochaine[1]})
         if 'personnage' in r2:
             p = r2['personnage']
-            p = api('/api/equiper', {'nom':'Heros','index':len(p['inventaire'])-1})['personnage']
+            r3 = api('/api/equiper', {'nom':'Heros','index':len(p['inventaire'])-1})
+            if 'personnage' in r3: p = r3['personnage']
         prochaine = None
     reserve = prochaine[2] if prochaine else 0
     while p['or'] - reserve > p['couts']['agilite']:

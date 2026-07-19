@@ -219,13 +219,7 @@
     "arme_grande_rarete_min": "Rare",
     "arme_grande_h": 3,
     "sac": {
-      "colonnes": 8,
-      "lignes": 6,
-      "cases_base": 6,
-      "cases_par_niveau": 1,
-      "extension_cases": 4,
-      "extension_prix_mult": 4,
-      "extensions_max": 8
+      "cases": 30
     },
     "stats_speciales": {
       "vol_de_vie": {
@@ -453,7 +447,16 @@
         }
       }
     },
-    "reforge_part_prix": 0.15
+    "reforge_part_prix": 0.15,
+    "harnois": {
+      "colonnes": 4,
+      "lignes": 4,
+      "cases_base": 6,
+      "niveaux_par_case": 1,
+      "extension_cases": 2,
+      "extension_prix_mult": 4,
+      "extensions_max": 4
+    }
   },
   "arene": {
     "attaques_par_jour": 5,
