@@ -23,20 +23,26 @@ function charger(nom) {
   // Migration des sauvegardes d'avant l'équipement
   if (!p.equipement) p.equipement = Object.fromEntries(K.equipement.emplacements.map(e => [e, null]));
   if (!p.inventaire) p.inventaire = [];
-  // Migration vers le sac spatial : on redonne une empreinte et une position à chaque
-  // objet ; s'il en déborde, on agrandit gratuitement, puis on vend le surplus.
-  if (p.inventaire.some(o => !o.pos || !o.taille)) {
-    const objets = p.inventaire.map(o => ({ ...o, taille: EQ.tailleObjet(o.emplacement, o.rarete) }));
-    p.inventaire = [];
-    p.extensionsSac = p.extensionsSac || 0;
-    for (const o of objets) {
-      delete o.pos;
-      let pose = placerObjet(p, o);
-      while (!pose && p.extensionsSac < K.equipement.sac.extensions_max) { p.extensionsSac++; pose = placerObjet(p, o); }
-      if (!pose) p.or += EQ.prixRevente(o);
+  // Migration v5.1 : le spatial passe du sac au harnois. Le sac redevient simple,
+  // les pièces portées reçoivent une position sur le harnois (extensions offertes si besoin).
+  for (const o of p.inventaire) { delete o.pos; if (!o.taille) o.taille = EQ.tailleObjet(o.emplacement, o.rarete); }
+  p.extensionsHarnois = p.extensionsHarnois ?? p.extensionsSac ?? 0;
+  delete p.extensionsSac;
+  const portees = Object.values(p.equipement).filter(Boolean);
+  if (portees.some(o => !o.pos || !o.taille)) {
+    for (const o of portees) { if (!o.taille) o.taille = EQ.tailleObjet(o.emplacement, o.rarete); delete o.pos; }
+    // Les plus grosses d'abord, pour maximiser les chances de tout caser.
+    for (const o of [...portees].sort((a, b) => b.taille.w * b.taille.h - a.taille.w * a.taille.h)) {
+      let pos = placeSurHarnois(p, o);
+      while (!pos && (p.extensionsHarnois || 0) < K.equipement.harnois.extensions_max) { p.extensionsHarnois = (p.extensionsHarnois || 0) + 1; pos = placeSurHarnois(p, o); }
+      if (pos) o.pos = pos;
+      else { // vraiment pas la place : la pièce retourne au sac (ou est vendue)
+        const emp = Object.keys(p.equipement).find(e => p.equipement[e] === o);
+        p.equipement[emp] = null;
+        if (!placerObjet(p, o)) p.or += EQ.prixRevente(o);
+      }
     }
   }
-  for (const o of Object.values(p.equipement)) if (o && !o.taille) o.taille = EQ.tailleObjet(o.emplacement, o.rarete);
   // Migration arène : ELO de départ et attaques quotidiennes.
   if (p.elo === undefined) p.elo = K.arene.elo_depart;
   const jour = new Date().toISOString().slice(0, 10);
@@ -90,7 +96,8 @@ function etatPublic(p) {
     ...p, energieMax: energieMax(p), xpProchainNiveau: xpPourNiveau(p.niveau),
     bonusEquipement: EQ.bonusEquipement(p.equipement),
     statsSpeciales: EQ.statsSpeciales(p.equipement),
-    sac: etatSac(p),
+    harnois: etatHarnois(p),
+    sac: { cases: SAC_CASES },
     puissance: { atk: Math.round(combattant.atk), def: Math.round(combattant.def), pv: combattant.pvMax },
     couts: Object.fromEntries(K.attributs.liste.map(a => {
       const brut = coutAttribut(p.attributs[a] + 1);
@@ -121,56 +128,60 @@ function journalCombatMission(p, c, reussite) {
   return journal;
 }
 
-// ---------- Sac spatial (façon Tetris) ----------
-const SAC = K.equipement.sac;
-// Ordre de déverrouillage des cases : par colonnes de deux lignes, bande par bande —
-// une épée (1×2) tient debout dès les six premières cases.
+// ---------- Harnois spatial (l'équipement porté occupe des cases, façon Tetris) ----------
+const HARNOIS = K.equipement.harnois;
+// Ordre de déverrouillage : par colonnes de deux lignes — une épée (1×2) tient
+// debout dès les six premières cases.
 const ORDRE_CELLULES = (() => {
   const ordre = [];
-  for (let bande = 0; bande < SAC.lignes; bande += 2)
-    for (let x = 0; x < SAC.colonnes; x++)
-      for (let dy = 0; dy < 2 && bande + dy < SAC.lignes; dy++)
+  for (let bande = 0; bande < HARNOIS.lignes; bande += 2)
+    for (let x = 0; x < HARNOIS.colonnes; x++)
+      for (let dy = 0; dy < 2 && bande + dy < HARNOIS.lignes; dy++)
         ordre.push({ x, y: bande + dy });
   return ordre;
 })();
-const nbCases = p => Math.min(SAC.colonnes * SAC.lignes,
-  SAC.cases_base + SAC.cases_par_niveau * (p.niveau - 1) + SAC.extension_cases * (p.extensionsSac || 0));
-const prixExtension = p => Math.round(orMission(p.niveau) * SAC.extension_prix_mult * 2 ** (p.extensionsSac || 0));
-const cellulesDebloquees = p => new Set(ORDRE_CELLULES.slice(0, nbCases(p)).map(c => c.x + ',' + c.y));
-function grilleOccupation(p) {
-  const occ = new Map();
-  p.inventaire.forEach((o, i) => {
+const nbCasesHarnois = p => Math.min(HARNOIS.colonnes * HARNOIS.lignes,
+  HARNOIS.cases_base + Math.floor((p.niveau - 1) / HARNOIS.niveaux_par_case) + HARNOIS.extension_cases * (p.extensionsHarnois || 0));
+const prixExtension = p => Math.round(orMission(p.niveau) * HARNOIS.extension_prix_mult * 2 ** (p.extensionsHarnois || 0));
+const cellulesDebloquees = p => new Set(ORDRE_CELLULES.slice(0, nbCasesHarnois(p)).map(c => c.x + ',' + c.y));
+// Occupation du harnois par les pièces PORTÉES (chacune connaît sa position).
+function occupationHarnois(p, sansEmplacement = null) {
+  const occ = new Set();
+  for (const [emp, o] of Object.entries(p.equipement)) {
+    if (!o || emp === sansEmplacement || !o.pos) continue;
     for (let dx = 0; dx < o.taille.w; dx++) for (let dy = 0; dy < o.taille.h; dy++)
-      occ.set((o.pos.x + dx) + ',' + (o.pos.y + dy), i);
-  });
+      occ.add((o.pos.x + dx) + ',' + (o.pos.y + dy));
+  }
   return occ;
 }
-function peutPoser(p, taille, x, y, debloquees, occ, ignorer = -1) {
+function peutPoser(taille, x, y, debloquees, occ) {
   for (let dx = 0; dx < taille.w; dx++) for (let dy = 0; dy < taille.h; dy++) {
-    if (x + dx >= SAC.colonnes || y + dy >= SAC.lignes) return false;
+    if (x + dx >= HARNOIS.colonnes || y + dy >= HARNOIS.lignes) return false;
     const cle = (x + dx) + ',' + (y + dy);
-    if (!debloquees.has(cle)) return false;
-    const qui = occ.get(cle);
-    if (qui !== undefined && qui !== ignorer) return false;
+    if (!debloquees.has(cle) || occ.has(cle)) return false;
   }
   return true;
 }
-// Pose l'objet au premier emplacement libre (balaie l'ordre de déverrouillage).
-// Retourne l'objet posé, ou null si le sac ne peut pas l'accueillir.
-function placerObjet(p, objet) {
-  const deb = cellulesDebloquees(p), occ = grilleOccupation(p);
+// Cherche une place sur le harnois pour une pièce (hors celle qu'elle remplace).
+function placeSurHarnois(p, objet, sansEmplacement = null) {
+  const deb = cellulesDebloquees(p), occ = occupationHarnois(p, sansEmplacement);
   for (const c of ORDRE_CELLULES)
-    if (peutPoser(p, objet.taille, c.x, c.y, deb, occ)) {
-      objet.pos = { x: c.x, y: c.y };
-      p.inventaire.push(objet);
-      return objet;
-    }
+    if (peutPoser(objet.taille, c.x, c.y, deb, occ)) return { x: c.x, y: c.y };
   return null;
 }
-function etatSac(p) {
-  return { colonnes: SAC.colonnes, lignes: SAC.lignes, cases: nbCases(p), casesMax: SAC.colonnes * SAC.lignes,
-           extensions: p.extensionsSac || 0, extensionsMax: SAC.extensions_max, prixExtension: prixExtension(p),
-           ordre: ORDRE_CELLULES.slice(0, nbCases(p)) };
+function etatHarnois(p) {
+  return { colonnes: HARNOIS.colonnes, lignes: HARNOIS.lignes, cases: nbCasesHarnois(p),
+           casesMax: HARNOIS.colonnes * HARNOIS.lignes, extensions: p.extensionsHarnois || 0,
+           extensionsMax: HARNOIS.extensions_max, prixExtension: prixExtension(p),
+           ordre: ORDRE_CELLULES.slice(0, nbCasesHarnois(p)) };
+}
+// Le sac, lui, est simple : une pièce, une case.
+const SAC_CASES = K.equipement.sac.cases;
+function placerObjet(p, objet) {
+  if (p.inventaire.length >= SAC_CASES) return null;
+  delete objet.pos;
+  p.inventaire.push(objet);
+  return objet;
 }
 
 // Butin de mission : tirage d'objet, posé dans le sac s'il y a la place.
@@ -195,6 +206,8 @@ app.get('/api/constantes', (_req, res) => res.json({
   reforge_part_prix: K.equipement.reforge_part_prix,
   affixes: K.equipement.affixes,
   tailles: K.equipement.tailles,
+  harnois: { colonnes: K.equipement.harnois.colonnes, lignes: K.equipement.harnois.lignes },
+  sac_cases: K.equipement.sac.cases,
   stats_speciales: K.equipement.stats_speciales,
   series: K.equipement.series,
   // De quoi écrire noir sur blanc ce que rapporte chaque attribut.
@@ -217,11 +230,12 @@ app.post('/api/personnage', (req, res) => {
     energie: K.energie.max_base, energieMajA: Date.now(),
     blesse: false, contratsAccomplis: {}, victoires: 0, defaites: 0,
     equipement: Object.fromEntries(K.equipement.emplacements.map(e => [e, null])),
-    inventaire: [], extensionsSac: 0
+    inventaire: [], extensionsHarnois: 0
   };
   for (const a of K.classes[classe].attributs_classe) p.attributs[a] += 3;
   // Arme de départ : héritée, comme le veut le pitch.
   p.equipement.arme = { ...EQ.genererObjet('arme', 1, 'Commun'), nom: 'Lame héritée' };
+  p.equipement.arme.pos = placeSurHarnois(p, p.equipement.arme);
   sauver(p);
   res.json(etatPublic(p));
 });
@@ -384,18 +398,17 @@ app.post('/api/equiper', (req, res) => {
   const p = charger(req.body.nom);
   const i = req.body.index;
   if (!p || p.inventaire[i] === undefined) return res.status(400).json({ erreur: 'Objet introuvable.' });
-  const objet = p.inventaire.splice(i, 1)[0];
-  const posOrigine = objet.pos;
+  const objet = p.inventaire[i];
   const ancien = p.equipement[objet.emplacement];
+  // La pièce doit tenir sur le harnois (l'ancienne du même emplacement libère ses cases).
+  const pos = placeSurHarnois(p, objet, objet.emplacement);
+  if (!pos) return res.status(400).json({ erreur: `Pas la place sur votre harnois pour ${objet.nom} (${objet.taille.w}×${objet.taille.h}) : déséquipez, ou passez chez le sellier.` });
+  if (ancien && p.inventaire.length >= SAC_CASES)
+    return res.status(400).json({ erreur: `Le sac est plein : impossible d'y ranger ${ancien.nom}.` });
+  p.inventaire.splice(i, 1);
+  objet.pos = pos;
   p.equipement[objet.emplacement] = objet;
-  delete objet.pos;
-  if (ancien && !placerObjet(p, ancien)) {
-    // pas la place de ranger l'ancien : on annule l'échange
-    p.equipement[objet.emplacement] = ancien;
-    objet.pos = posOrigine;
-    p.inventaire.splice(i, 0, objet);
-    return res.status(400).json({ erreur: `Pas la place de ranger ${ancien.nom} : faites de la place d'abord.` });
-  }
+  if (ancien) { delete ancien.pos; p.inventaire.push(ancien); }
   sauver(p);
   res.json({ objet, ancien, personnage: etatPublic(p) });
 });
@@ -406,7 +419,7 @@ app.post('/api/desequiper', (req, res) => {
   if (!p || !K.equipement.emplacements.includes(emp)) return res.status(400).json({ erreur: 'Emplacement inconnu.' });
   const objet = p.equipement[emp];
   if (!objet) return res.status(400).json({ erreur: 'Emplacement déjà vide.' });
-  if (!placerObjet(p, objet)) return res.status(400).json({ erreur: 'Pas la place dans le sac pour cette pièce.' });
+  if (!placerObjet(p, objet)) return res.status(400).json({ erreur: 'Le sac est plein.' });
   p.equipement[emp] = null;
   sauver(p);
   res.json({ objet, personnage: etatPublic(p) });
@@ -432,39 +445,35 @@ app.post('/api/fusionner', (req, res) => {
   if (p.or < cout) return res.status(400).json({ erreur: `La fusion coûte ${cout} or de charbon et de sueur.` });
   p.or -= cout;
   // Retirer les deux pièces (indices décroissants pour ne pas se décaler)
-  const retires = [indexA, indexB].sort((x, y) => y - x).map(i => p.inventaire.splice(i, 1)[0]);
+  for (const i of [indexA, indexB].sort((x, y) => y - x)) p.inventaire.splice(i, 1);
   const objet = EQ.genererObjet(a.emplacement, niveau, rareteSup);
-  if (!placerObjet(p, objet)) {
-    for (const o of retires.reverse()) p.inventaire.push(o); // positions conservées : les cases viennent d'être libérées
-    p.or += cout;
-    return res.status(400).json({ erreur: 'La pièce fondue est plus grande : faites de la place dans le sac.' });
-  }
+  placerObjet(p, objet); // deux pièces retirées : il y a forcément une case
   sauver(p);
   res.json({ objet, cout, personnage: etatPublic(p) });
 });
 
-// Déplacer une pièce du sac vers une case précise (réagencement façon Tetris).
+// Déplacer une pièce PORTÉE sur le harnois (réagencement façon Tetris).
 app.post('/api/deplacer', (req, res) => {
   const p = charger(req.body.nom);
-  const { index, x, y } = req.body;
-  const o = p && p.inventaire[index];
+  const { emplacement, x, y } = req.body;
+  const o = p && p.equipement[emplacement];
   if (!o || !Number.isInteger(x) || !Number.isInteger(y)) return res.status(400).json({ erreur: 'Déplacement invalide.' });
-  if (!peutPoser(p, o.taille, x, y, cellulesDebloquees(p), grilleOccupation(p), index))
+  if (!peutPoser(o.taille, x, y, cellulesDebloquees(p), occupationHarnois(p, emplacement)))
     return res.status(400).json({ erreur: 'Cette pièce ne tient pas là.' });
   o.pos = { x, y };
   sauver(p);
   res.json({ objet: o, personnage: etatPublic(p) });
 });
 
-// Agrandir le sac : +4 cases contre de l'or, prix doublant à chaque extension.
-app.post('/api/sac/extension', (req, res) => {
+// Agrandir le harnois chez le sellier : +2 cases, prix doublant à chaque extension.
+app.post('/api/harnois/extension', (req, res) => {
   const p = charger(req.body.nom);
   if (!p) return res.status(404).json({ erreur: 'Inconnu au registre.' });
-  if ((p.extensionsSac || 0) >= SAC.extensions_max) return res.status(400).json({ erreur: 'Le sellier ne fait pas plus grand.' });
+  if ((p.extensionsHarnois || 0) >= HARNOIS.extensions_max) return res.status(400).json({ erreur: 'Le sellier ne fait pas plus grand.' });
   const prix = prixExtension(p);
   if (p.or < prix) return res.status(400).json({ erreur: `L'extension coûte ${prix} or.` });
   p.or -= prix;
-  p.extensionsSac = (p.extensionsSac || 0) + 1;
+  p.extensionsHarnois = (p.extensionsHarnois || 0) + 1;
   sauver(p);
   res.json({ prix, personnage: etatPublic(p) });
 });

@@ -47,7 +47,8 @@ while True:
         r2 = api('/api/forge/acheter', {'nom':'Pelerin','emplacement':prochaine[0],'rarete':prochaine[1]})
         if 'personnage' in r2:
             p = r2['personnage']
-            p = api('/api/equiper', {'nom':'Pelerin','index':len(p['inventaire'])-1})['personnage']
+            r3 = api('/api/equiper', {'nom':'Pelerin','index':len(p['inventaire'])-1})
+            if 'personnage' in r3: p = r3['personnage']
         prochaine = None
     # Fusion : deux pièces jumelles au sac -> rareté supérieure, qu'on équipe si mieux
     doubles = {}
@@ -57,7 +58,8 @@ while True:
             r2 = api('/api/fusionner', {'nom':'Pelerin','indexA':doubles[cle],'indexB':i})
             if 'personnage' in r2:
                 p = r2['personnage']
-                p = api('/api/equiper', {'nom':'Pelerin','index':len(p['inventaire'])-1})['personnage']
+                r3 = api('/api/equiper', {'nom':'Pelerin','index':len(p['inventaire'])-1})
+                if 'personnage' in r3: p = r3['personnage']
             break
         doubles[cle] = i
     reserve = prochaine[2] if prochaine else 0

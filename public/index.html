@@ -15,21 +15,22 @@
   --r-commun:#9aa3ad; --r-inhabituel:#7ba05b; --r-rare:#5b8fc7; --r-epique:#a06bc7; --r-legendaire:#e0952f;
 }
 *{box-sizing:border-box;margin:0}
-body{background:var(--noirlac);color:#d8dde5;font-family:'Alegreya',serif;font-size:17px;line-height:1.5;min-height:100vh}
+body{background:radial-gradient(ellipse at 50% -10%, #1d232e 0%, var(--noirlac) 55%, #0e1218 100%) fixed;color:#d8dde5;font-family:'Alegreya',serif;font-size:17px;line-height:1.5;min-height:100vh}
 h1,h2,h3{font-family:'Grenze Gotisch',serif;font-weight:500;letter-spacing:.02em}
-button{font-family:'Alegreya',serif;font-size:16px;cursor:pointer;border:none;border-radius:3px;padding:9px 18px;background:var(--fer-clair);color:#e8ecf2;transition:background .15s}
-button:hover{background:#4a5568}
+button{font-family:'Alegreya',serif;font-size:16px;cursor:pointer;border:1px solid #2b323d;border-radius:4px;padding:9px 18px;background:linear-gradient(180deg,#454f5e,#39424f);color:#e8ecf2;transition:background .15s,transform .08s,box-shadow .15s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+button:hover{background:linear-gradient(180deg,#525d6e,#434d5b);box-shadow:0 2px 6px rgba(0,0,0,.45)}
+button:active{transform:translateY(1px)}
 button:focus-visible{outline:2px solid var(--ambrefeu);outline-offset:2px}
 button:disabled{opacity:.4;cursor:not-allowed}
-button.principal{background:var(--ambrefeu);color:var(--encre);font-weight:700}
-button.principal:hover{background:var(--ambrefeu-vif)}
+button.principal{background:linear-gradient(180deg,#f2ab40,#d68a25);border-color:#8a5c16;color:var(--encre);font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.25)}
+button.principal:hover{background:linear-gradient(180deg,#ffbd55,#e89a30)}
 .cache{display:none!important}
 
 /* ---------- Écran d'entrée ---------- */
 #ecranRegistre{max-width:520px;margin:8vh auto;padding:0 20px;text-align:center}
-#ecranRegistre h1{font-size:52px;color:var(--ambrefeu);line-height:1.05}
+#ecranRegistre h1{font-size:52px;color:var(--ambrefeu);line-height:1.05;text-shadow:0 0 26px rgba(224,149,47,.4),0 3px 4px rgba(0,0,0,.6)}
 #ecranRegistre .sous{color:var(--brume);font-style:italic;margin:6px 0 34px}
-.registre{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:28px;text-align:left}
+.registre{background:linear-gradient(170deg,#262e3a,#1e242e);border:1px solid var(--fer-clair);border-radius:8px;padding:28px;text-align:left;box-shadow:0 6px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04)}
 .registre label{display:block;color:var(--brume);font-size:14px;text-transform:uppercase;letter-spacing:.1em;margin:16px 0 6px}
 .registre input{width:100%;padding:10px;font-family:'Alegreya',serif;font-size:18px;background:var(--noirlac);border:1px solid var(--fer-clair);border-radius:3px;color:#e8ecf2}
 .choixClasses{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
@@ -45,7 +46,7 @@ button.principal:hover{background:var(--ambrefeu-vif)}
 /* ---------- Jeu ---------- */
 #ecranJeu{max-width:1080px;margin:0 auto;padding:18px 20px 60px}
 header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 22px;border-bottom:1px solid var(--fer-clair);padding-bottom:12px;margin-bottom:8px}
-header h1{font-size:34px;color:var(--ambrefeu)}
+header h1{font-size:34px;color:var(--ambrefeu);text-shadow:0 0 18px rgba(224,149,47,.35),0 2px 3px rgba(0,0,0,.6)}
 header .titreJoueur{color:var(--brume);font-style:italic}
 .stats{display:flex;gap:22px;margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:15px}
 .stats b{color:var(--ambrefeu-vif);font-weight:500}
@@ -56,7 +57,8 @@ header .titreJoueur{color:var(--brume);font-style:italic}
 .avisBlessure{background:#3a2422;border:1px solid var(--sang);border-radius:4px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 nav{display:flex;gap:4px;margin-bottom:22px;flex-wrap:wrap}
 nav button{background:none;border-radius:4px 4px 0 0;color:var(--brume);font-family:'Grenze Gotisch',serif;font-size:21px;padding:8px 20px}
-nav button.actif{background:var(--fer);color:var(--ambrefeu)}
+nav button.actif{background:linear-gradient(180deg,#2a3140,var(--fer));color:var(--ambrefeu);border-bottom:2px solid var(--ambrefeu);box-shadow:none}
+nav button{border:none;background:none;box-shadow:none}
 
 /* ---------- Carte de la région ---------- */
 #panneauContrats{background:linear-gradient(180deg,#2a2119,#241d16);border:6px solid #1b1510;border-radius:4px;padding:14px;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
@@ -138,12 +140,14 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 #voileCombat .fermer{display:block;margin:14px auto 0}
 
 /* ---------- Scène de combat animée ---------- */
-.scene{background:radial-gradient(ellipse at 50% 120%,#2a2119 0%,#0e1116 70%);border:1px solid var(--fer-clair);border-radius:6px;padding:26px 20px 18px;margin-top:8px;position:relative;overflow:hidden}
+.scene{background:radial-gradient(ellipse at 50% 130%,#3a2c1c 0%,#1a1712 34%,#0e1116 72%);border:1px solid var(--fer-clair);border-radius:8px;padding:26px 20px 18px;margin-top:8px;position:relative;overflow:hidden;box-shadow:inset 0 0 50px rgba(0,0,0,.55)}
+.scene::before{content:"";position:absolute;left:0;right:0;top:0;height:44%;background:linear-gradient(180deg,rgba(159,208,255,.05),transparent);pointer-events:none}
 .duellistes{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
 .duelliste{width:44%;text-align:center;position:relative;transition:transform .18s ease-out}
 .duelliste .pancarte{font-family:'Grenze Gotisch',serif;font-size:19px;line-height:1.1;min-height:44px}
 .duelliste .classeSous{color:var(--brume);font-size:13px;margin-bottom:8px}
-.figurine{width:96px;height:108px;margin:0 auto 10px;background:radial-gradient(ellipse at 50% 85%,#2a2119 0%,var(--fer) 70%);border:2px solid var(--fer-clair);border-radius:8px 8px 26px 26px;display:flex;align-items:flex-end;justify-content:center;padding:5px 4px 2px;position:relative;transition:transform .18s ease-out,filter .18s}
+.figurine{width:96px;height:108px;margin:0 auto 10px;background:radial-gradient(ellipse at 50% 85%,#2f2517 0%,var(--fer) 72%);border:2px solid var(--fer-clair);border-radius:8px 8px 26px 26px;display:flex;align-items:flex-end;justify-content:center;padding:5px 4px 2px;position:relative;transition:transform .18s ease-out,filter .18s;box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 0 16px rgba(0,0,0,.4)}
+.figurine::after{content:"";position:absolute;bottom:-7px;left:14%;right:14%;height:9px;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);border-radius:50%;pointer-events:none}
 .figurine svg{width:100%;height:100%;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}
 .duelliste.droite .figurine svg{transform:scaleX(-1)}
 .duelliste.attaque .figurine{transform:translateX(26px) rotate(3deg)}
@@ -186,16 +190,16 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 /* ---------- Équipement : panoplie (paper doll) + sac en grille ---------- */
 .colonnesEq{display:grid;grid-template-columns:330px 1fr;gap:24px}
 @media(max-width:820px){.colonnesEq{grid-template-columns:1fr}}
-.pantin{background:var(--fer);border:1px solid var(--fer-clair);border-radius:6px;padding:16px}
+.pantin{background:linear-gradient(170deg,#262e3a,#1e242e);border:1px solid var(--fer-clair);border-radius:8px;padding:16px;box-shadow:0 3px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04)}
 .pantin h3{color:var(--ambrefeu);margin-bottom:8px}
-/* Équipement porté : bloc de cases encadrées, façon Goodgame Gangster */
-.grillePorte{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 10px;padding:16px 12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;justify-items:center}
-.celluleEq{display:flex;flex-direction:column;align-items:center;gap:5px}
-.celluleEq .etiquetteCase{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--brume);white-space:nowrap}
-.grillePorte .case{border:2px solid #5b4a2d;background:#20242e}
-.grillePorte .case.caseVide .icone{color:#39424f}
+/* Harnois : grille spatiale sur fond de cuir — les pièces PORTÉES occupent des cases */
+.grilleHarnois{display:grid;grid-template-columns:repeat(var(--cols,4),56px);grid-auto-rows:56px;gap:6px;padding:14px;background:linear-gradient(160deg,#3d2f1f,#2a2013 70%);border:2px solid #5b4a2d;border-radius:8px;width:max-content;max-width:100%;box-shadow:inset 0 0 26px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);position:relative}
+.grilleHarnois::after{content:"";position:absolute;inset:5px;border:1.5px dashed rgba(230,217,184,.16);border-radius:5px;pointer-events:none}
+.grilleHarnois .celluleFond{border:1.5px solid rgba(230,217,184,.14);border-radius:5px;background:rgba(0,0,0,.22)}
+.grilleHarnois .celluleFond.verrou{border-color:rgba(0,0,0,.3);background:repeating-linear-gradient(45deg,rgba(0,0,0,.42),rgba(0,0,0,.42) 6px,rgba(0,0,0,.28) 6px,rgba(0,0,0,.28) 12px)}
+.grilleHarnois .celluleFond.cibleDepot{border:2px solid var(--ambrefeu);background:rgba(224,149,47,.18)}
 .case{width:64px;height:64px;background:#181d25;border:2px dashed var(--fer-clair);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative}
-.case.pleine{border-style:solid;cursor:grab;background:#1d232d}
+.case.pleine{border-style:solid;cursor:grab;background:linear-gradient(160deg,#232a35,#1a2029)}
 .case.pleine:hover{filter:brightness(1.25)}
 .case.cibleDepot{border-color:var(--ambrefeu)!important;border-style:solid;box-shadow:0 0 12px rgba(224,149,47,.5);background:#2a2418}
 .case.cibleFusion{border-color:var(--r-epique)!important;border-style:solid;box-shadow:0 0 12px rgba(160,107,199,.55);background:#241d2e}
@@ -204,16 +208,17 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
 .puissanceResume{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--brume);line-height:1.9}
 .puissanceResume b{color:var(--ambrefeu-vif);font-weight:500}
 .sacs h3{color:var(--ambrefeu);margin-bottom:10px}
-/* Sac spatial : grille fixe, cases verrouillées hachurées, objets multi-cases */
-.grilleSac{display:grid;grid-template-columns:repeat(var(--cols,8),50px);grid-auto-rows:50px;gap:6px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;width:max-content;max-width:100%;overflow-x:auto}
-.celluleFond{border:1.5px dashed #242b35;border-radius:5px;background:#161a21}
-.celluleFond.verrou{border:1.5px solid #1a1f27;background:repeating-linear-gradient(45deg,#101319,#101319 6px,#151920 6px,#151920 12px)}
-.celluleFond.cibleDepot{border:2px solid var(--ambrefeu);background:#2a2418}
-.objetSac{position:relative;z-index:2;border:2px solid;border-radius:6px;background:#1d232d;cursor:grab;display:flex;align-items:center;justify-content:center}
-.objetSac:hover{filter:brightness(1.25)}
-.objetSac svg.icone{width:72%;height:72%;max-width:42px;max-height:60px;pointer-events:none}
-.objetSac .nivCoin{position:absolute;top:2px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brume);pointer-events:none}
-.objetSac.cibleFusion{border-color:var(--r-epique)!important;box-shadow:0 0 12px rgba(160,107,199,.55);background:#241d2e}
+/* Sac : simple — une pièce, une case */
+.grilleSac{display:grid;grid-template-columns:repeat(auto-fill,64px);gap:8px;padding:12px;background:#181d25;border:1px solid var(--fer-clair);border-radius:6px;min-height:88px;box-shadow:inset 0 0 18px rgba(0,0,0,.35)}
+.grilleSac .case.vide{border-style:dashed;border-color:#242b35}
+/* Pièces portées sur le harnois : occupent leur empreinte */
+.objetSac{position:relative;z-index:2;border:2px solid;border-radius:6px;background:linear-gradient(160deg,#26170d,#1a1009);cursor:grab;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.objetSac:hover{filter:brightness(1.3)}
+.objetSac svg.icone{width:72%;height:72%;max-width:44px;max-height:64px;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.objetSac .nivCoin{position:absolute;top:2px;right:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--parchemin-ombre);pointer-events:none}
+.objetSac.cibleFusion{border-color:var(--r-epique)!important;box-shadow:0 0 12px rgba(160,107,199,.55)}
+.contour-Légendaire{animation:lueurLegendaire 2.2s ease-in-out infinite}
+@keyframes lueurLegendaire{0%,100%{box-shadow:0 0 6px rgba(224,149,47,.35)}50%{box-shadow:0 0 16px rgba(255,179,71,.75)}}
 .barreSac{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
 .barreSac button{font-size:14px}
 .zoneVente{margin-top:12px;border:2px dashed var(--fer-clair);border-radius:6px;padding:12px 14px;color:var(--brume);font-style:italic;font-size:14.5px;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s}
@@ -345,18 +350,20 @@ nav button.actif{background:var(--fer);color:var(--ambrefeu)}
   <section id="panneauEquipement" class="cache">
     <div class="colonnesEq">
       <div class="pantin">
-        <h3>Équipement porté</h3>
-        <div class="grillePorte" id="grillePorte"></div>
+        <h3>Harnois — <span id="harnoisLibres"></span></h3>
+        <p class="noteClasse" style="margin-bottom:8px">Votre équipement PORTÉ occupe des cases : une épée tient debout (1×2, les grandes lames 1×3), une armure fait 2×2... Au début, il faut choisir. Le harnois s'agrandit avec vos niveaux — et chez le sellier.</p>
+        <div class="grilleHarnois" id="grilleHarnois"></div>
+        <div class="barreSac">
+          <button id="btnExtension" onclick="acheterExtension()"></button>
+        </div>
+        <p class="noteClasse" id="noteExtension" style="margin-top:6px"></p>
+        <p class="noteClasse" id="emplacementsVides"></p>
         <div class="puissanceResume" id="puissanceResume"></div>
       </div>
       <div class="sacs">
-        <h3>Sac — <span id="tailleSac">0</span> case(s) libre(s) sur <span id="tailleSacMax">6</span></h3>
-        <p class="noteClasse" style="margin-bottom:8px">Chaque pièce occupe sa place : une épée tient debout (1×2, les grandes lames 1×3), une armure fait 2×2... Glissez pour réagencer, équiper, <b>fondre</b> (sur une pièce jumelle) ou vendre. Le sac grandit avec vos niveaux — et chez le sellier.</p>
+        <h3>Sac (<span id="tailleSac">0</span>/<span id="tailleSacMax">30</span>)</h3>
+        <p class="noteClasse" style="margin-bottom:8px">Glissez une pièce sur le harnois pour la porter, sur une pièce jumelle pour la <b>fondre</b>, sur l'étal pour la vendre. Double-clic : équiper. Clic sur une pièce portée : ranger au sac.</p>
         <div class="grilleSac" id="grilleSac"></div>
-        <div class="barreSac">
-          <button id="btnExtension" onclick="acheterExtension()"></button>
-          <span class="noteClasse" id="noteExtension"></span>
-        </div>
         <div class="zoneVente" id="zoneVente">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h16l-1.5 11h-13L4 9z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
           <span>L'étal d'Orin — déposez ici pour vendre (30 % du prix)</span>
@@ -1060,17 +1067,42 @@ function caseObjet(o, attrsSup) {
 }
 async function afficherEquipement() {
   selectionSac = -1;
-  const porte = document.getElementById('grillePorte');
-  let html = '';
+  // --- Harnois : les pièces portées occupent leurs cases (façon Tetris) ---
+  const h = perso.harnois;
+  const grilleH = document.getElementById('grilleHarnois');
+  grilleH.style.setProperty('--cols', h.colonnes);
+  const debloquees = new Set(h.ordre.map(c => c.x + ',' + c.y));
+  let hHtml = '';
+  for (let y = 0; y < h.lignes; y++)
+    for (let x = 0; x < h.colonnes; x++) {
+      const deb = debloquees.has(x + ',' + y);
+      hHtml += '<div class="celluleFond' + (deb ? '' : ' verrou') + '"' + (deb ? ' data-x="' + x + '" data-y="' + y + '"' : '') +
+               ' style="grid-column:' + (x + 1) + ';grid-row:' + (y + 1) + '"></div>';
+    }
+  const vides = [];
+  let casesOccupees = 0;
   for (const emp of CONF.emplacements) {
     const o = perso.equipement[emp];
-    html += '<div class="celluleEq">' +
-      (o ? caseObjet(o, 'data-slot="' + emp + '"')
-         : '<div class="case caseVide" data-slot="' + emp + '">' + svgIcone(emp, 'fantome') + '</div>') +
-      '<span class="etiquetteCase">' + NOMS_EMPLACEMENTS[emp] + '</span>' +
-    '</div>';
+    if (!o) { vides.push(NOMS_EMPLACEMENTS[emp]); continue; }
+    casesOccupees += o.taille.w * o.taille.h;
+    hHtml += '<div class="objetSac portee contour-' + o.rarete + '" data-slot="' + emp + '" draggable="true"' +
+      ' style="grid-column:' + (o.pos.x + 1) + ' / span ' + o.taille.w + ';grid-row:' + (o.pos.y + 1) + ' / span ' + o.taille.h + '">' +
+      svgIcone(o.emplacement, o.rarete) + '<span class="nivCoin">' + o.niveau + '</span></div>';
   }
-  porte.innerHTML = html;
+  grilleH.innerHTML = hHtml;
+  document.getElementById('harnoisLibres').textContent = (h.cases - casesOccupees) + ' case(s) libre(s) sur ' + h.cases;
+  document.getElementById('emplacementsVides').textContent =
+    vides.length ? 'Emplacements vides : ' + vides.join(', ') + '.' : 'Toutes les pièces sont portées.';
+  const btnExt = document.getElementById('btnExtension');
+  if (h.extensions >= h.extensionsMax || h.cases >= h.casesMax) {
+    btnExt.disabled = true;
+    btnExt.textContent = 'Harnois au maximum';
+  } else {
+    btnExt.disabled = perso.or < h.prixExtension;
+    btnExt.textContent = 'Agrandir le harnois (+2 cases) — ' + fmt(h.prixExtension) + ' or';
+  }
+  document.getElementById('noteExtension').textContent =
+    'Extensions du sellier : ' + h.extensions + '/' + h.extensionsMax + ' · +1 case par niveau gagné.';
 
   const b = perso.bonusEquipement;
   const morceaux = Object.entries(NOMS_EFFETS)
@@ -1095,37 +1127,14 @@ async function afficherEquipement() {
     (speciales.length ? '<div class="statsSpecialesResume">Stats spéciales :<br>' + speciales.join(' · ') + '</div>' : '') +
     (seriesHtml ? '<div class="panneauSeries">' + seriesHtml + '</div>' : '');
 
-  // --- Sac spatial : cases de fond (déverrouillées/verrouillées) + objets multi-cases ---
-  const sac = perso.sac;
+  // --- Sac simple : une pièce, une case ---
   const grille = document.getElementById('grilleSac');
-  grille.style.setProperty('--cols', sac.colonnes);
-  const debloquees = new Set(sac.ordre.map(c => c.x + ',' + c.y));
+  document.getElementById('tailleSac').textContent = perso.inventaire.length;
+  document.getElementById('tailleSacMax').textContent = perso.sac.cases;
   let sacHtml = '';
-  for (let y = 0; y < sac.lignes; y++)
-    for (let x = 0; x < sac.colonnes; x++) {
-      const deb = debloquees.has(x + ',' + y);
-      sacHtml += '<div class="celluleFond' + (deb ? '' : ' verrou') + '"' + (deb ? ' data-x="' + x + '" data-y="' + y + '"' : '') +
-                 ' style="grid-column:' + (x + 1) + ';grid-row:' + (y + 1) + '"></div>';
-    }
-  perso.inventaire.forEach((o, i) => {
-    sacHtml += '<div class="objetSac contour-' + o.rarete + '" data-index="' + i + '" draggable="true"' +
-      ' style="grid-column:' + (o.pos.x + 1) + ' / span ' + o.taille.w + ';grid-row:' + (o.pos.y + 1) + ' / span ' + o.taille.h + '">' +
-      svgIcone(o.emplacement, o.rarete) + '<span class="nivCoin">' + o.niveau + '</span></div>';
-  });
+  perso.inventaire.forEach((o, i) => { sacHtml += caseObjet(o, 'data-index="' + i + '"'); });
+  for (let i = perso.inventaire.length; i < perso.sac.cases; i++) sacHtml += '<div class="case vide"></div>';
   grille.innerHTML = sacHtml;
-  const occupees = perso.inventaire.reduce((s, o) => s + o.taille.w * o.taille.h, 0);
-  document.getElementById('tailleSac').textContent = sac.cases - occupees;
-  document.getElementById('tailleSacMax').textContent = sac.cases;
-  const btnExt = document.getElementById('btnExtension');
-  if (sac.extensions >= sac.extensionsMax || sac.cases >= sac.casesMax) {
-    btnExt.disabled = true;
-    btnExt.textContent = 'Sac au maximum';
-  } else {
-    btnExt.disabled = perso.or < sac.prixExtension;
-    btnExt.textContent = 'Agrandir le sac (+4 cases) — ' + fmt(sac.prixExtension) + ' or';
-  }
-  document.getElementById('noteExtension').textContent =
-    'Extensions du sellier : ' + sac.extensions + '/' + sac.extensionsMax + ' · +1 case par niveau gagné.';
   document.getElementById('detailObjet').classList.add('cache');
 
   brancherInteractions();
@@ -1133,23 +1142,23 @@ async function afficherEquipement() {
 }
 async function acheterExtension() {
   try {
-    const r = await api('/api/sac/extension', { nom: perso.nom });
+    const r = await api('/api/harnois/extension', { nom: perso.nom });
     perso = r.personnage;
-    toast('Le sellier coud un soufflet de plus : +4 cases pour ' + fmt(r.prix) + ' or.', 'bon');
+    toast('Le sellier ajoute des sangles : +2 cases de harnois pour ' + fmt(r.prix) + ' or.', 'bon');
     rafraichirEntete(); afficherEquipement();
   } catch(e) { toast(e.message, 'mauvais'); }
 }
-async function deplacer(index, x, y) {
+async function deplacer(emplacement, x, y) {
   try {
-    const r = await api('/api/deplacer', { nom: perso.nom, index, x, y });
+    const r = await api('/api/deplacer', { nom: perso.nom, emplacement, x, y });
     perso = r.personnage;
     afficherEquipement();
   } catch(e) { toast(e.message, 'mauvais'); }
 }
 function brancherInteractions() {
-  // Objets du sac : infobulle, sélection, double-clic pour équiper, glisser (réagencer,
-  // équiper, vendre, ou FUSIONNER en déposant sur une pièce jumelle).
-  document.querySelectorAll('#grilleSac .objetSac').forEach(el => {
+  // Pièces du sac : infobulle, sélection, double-clic pour équiper, glisser
+  // (vers le harnois pour porter, sur une jumelle pour fondre, sur l'étal pour vendre).
+  document.querySelectorAll('#grilleSac .case.pleine').forEach(el => {
     const i = parseInt(el.dataset.index);
     const o = perso.inventaire[i];
     el.addEventListener('mouseenter', e => montrerBulle(e, o));
@@ -1160,13 +1169,14 @@ function brancherInteractions() {
     el.addEventListener('dragstart', e => {
       cacherBulle();
       e.dataTransfer.setData('text/plain', JSON.stringify({ de: 'sac', index: i, emplacement: o.emplacement }));
-      document.querySelectorAll('.case[data-slot="' + o.emplacement + '"], #zoneVente').forEach(z => z.classList.add('cibleDepot'));
+      document.getElementById('grilleHarnois').classList.add('surbrillance');
+      document.querySelectorAll('#grilleHarnois .celluleFond[data-x], #zoneVente').forEach(z => z.classList.add('cibleDepot'));
       if (rareteSuivante(o.rarete)) perso.inventaire.forEach((p2, j) => {
         if (j !== i && p2.emplacement === o.emplacement && p2.rarete === o.rarete)
-          document.querySelector('#grilleSac .objetSac[data-index="' + j + '"]').classList.add('cibleFusion');
+          document.querySelector('#grilleSac .case[data-index="' + j + '"]').classList.add('cibleFusion');
       });
     });
-    el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot,.cibleFusion').forEach(z => z.classList.remove('cibleDepot', 'cibleFusion')));
+    el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot,.cibleFusion,.surbrillance').forEach(z => z.classList.remove('cibleDepot', 'cibleFusion', 'surbrillance')));
     el.addEventListener('dragover', e => e.preventDefault());
     el.addEventListener('drop', e => {
       e.preventDefault(); e.stopPropagation();
@@ -1174,47 +1184,45 @@ function brancherInteractions() {
       if (d && d.de === 'sac' && d.index !== i) fusionner(d.index, i);
     });
   });
-  // Cases libres du sac : cible de réagencement (la case visée devient le coin haut-gauche).
-  document.querySelectorAll('#grilleSac .celluleFond[data-x]').forEach(el => {
-    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('cibleDepot'); });
-    el.addEventListener('dragleave', () => el.classList.remove('cibleDepot'));
-    el.addEventListener('drop', e => {
-      e.preventDefault();
-      el.classList.remove('cibleDepot');
-      const d = donneesDepot(e);
-      if (d && d.de === 'sac') deplacer(d.index, parseInt(el.dataset.x), parseInt(el.dataset.y));
-    });
-  });
-  // Cases de l'équipement porté : infobulle, clic pour ranger, zone de dépôt.
-  document.querySelectorAll('#grillePorte .case').forEach(el => {
+  // Pièces portées : infobulle, clic pour ranger, glisser pour réagencer ou ranger.
+  document.querySelectorAll('#grilleHarnois .objetSac').forEach(el => {
     const emp = el.dataset.slot;
     const o = perso.equipement[emp];
-    if (o) {
-      el.addEventListener('mouseenter', e => montrerBulle(e, o));
-      el.addEventListener('mousemove', bougerBulle);
-      el.addEventListener('mouseleave', cacherBulle);
-      el.addEventListener('click', () => desequiper(emp));
-      el.addEventListener('dragstart', e => {
-        cacherBulle();
-        e.dataTransfer.setData('text/plain', JSON.stringify({ de: 'panoplie', emplacement: emp }));
-        document.getElementById('grilleSac').classList.add('cibleDepot');
-      });
-      el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot').forEach(z => z.classList.remove('cibleDepot')));
-    }
+    el.addEventListener('mouseenter', e => montrerBulle(e, o));
+    el.addEventListener('mousemove', bougerBulle);
+    el.addEventListener('mouseleave', cacherBulle);
+    el.addEventListener('click', () => desequiper(emp));
+    el.addEventListener('dragstart', e => {
+      cacherBulle();
+      e.dataTransfer.setData('text/plain', JSON.stringify({ de: 'harnois', emplacement: emp }));
+      document.getElementById('grilleSac').classList.add('cibleDepot');
+    });
+    el.addEventListener('dragend', () => document.querySelectorAll('.cibleDepot,.cibleFusion').forEach(z => z.classList.remove('cibleDepot', 'cibleFusion')));
+    el.addEventListener('dragover', e => e.preventDefault());
+    el.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      const d = donneesDepot(e);
+      if (d && d.de === 'sac' && d.emplacement === emp) equiper(d.index); // échange direct
+    });
+  });
+  // Cases libres du harnois : porter une pièce du sac, ou réagencer une pièce portée.
+  document.querySelectorAll('#grilleHarnois .celluleFond[data-x]').forEach(el => {
     el.addEventListener('dragover', e => e.preventDefault());
     el.addEventListener('drop', e => {
       e.preventDefault();
       const d = donneesDepot(e);
-      if (d && d.de === 'sac' && d.emplacement === emp) equiper(d.index);
+      if (!d) return;
+      if (d.de === 'sac') equiper(d.index);
+      else if (d.de === 'harnois') deplacer(d.emplacement, parseInt(el.dataset.x), parseInt(el.dataset.y));
     });
   });
-  // Le sac accepte les pièces de la panoplie (ranger).
+  // Le sac accepte les pièces du harnois (ranger).
   const grille = document.getElementById('grilleSac');
   grille.addEventListener('dragover', e => e.preventDefault());
   grille.addEventListener('drop', e => {
     e.preventDefault();
     const d = donneesDepot(e);
-    if (d && d.de === 'panoplie') desequiper(d.emplacement);
+    if (d && d.de === 'harnois') desequiper(d.emplacement);
   });
   // L'étal d'Orin accepte les pièces du sac (vendre).
   const vente = document.getElementById('zoneVente');
